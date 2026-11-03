@@ -8,7 +8,6 @@ GROUP = "VideoTimelapse"
 DEFAULTS = {
     "encoder": "",            # empty = best detected
     "quality": "medium",
-    "interval": 1.0,          # seconds between captures
     "fps": 30,
     "resolution": 0,          # 0 = original, 1 = half, 2 = quarter
     "directory": os.path.join(os.path.expanduser("~"), "Videos", "Krita Timelapses"),
@@ -46,8 +45,7 @@ def _builtin(key):
         return rd("recorder_export/firstframesec") if flag("recorder_export/resultpreview") else "0"
     if key == "export_hold":
         return rd("recorder_export/lastframesec") if flag("recorder_export/extendresult") else "0"
-    name = {"interval": "recorder/captureinterval",
-            "resolution": "recorder/resolution",
+    name = {"resolution": "recorder/resolution",
             "auto_record": "recorder/recordautomatically",
             "fps": "recorder_export/fps",
             "export_fps": "recorder_export/fps",

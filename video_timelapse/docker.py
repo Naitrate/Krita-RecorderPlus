@@ -6,7 +6,7 @@ from krita import DockWidget, Krita
 
 from . import encoders, settings
 from .export import ExportDialog, human_size
-from .qt import (QCheckBox, QComboBox, QDesktopServices, QDoubleSpinBox,
+from .qt import (QCheckBox, QComboBox, QDesktopServices,
                  QFileDialog, QFormLayout, QFrame, QGroupBox, QHBoxLayout,
                  QLabel, QLineEdit, QMessageBox, QObject, QPushButton,
                  QScrollArea, QSpinBox, Qt, QTimer, QToolButton, QUrl,
@@ -84,6 +84,11 @@ class TimelapseDocker(DockWidget):
         lay.addWidget(self.stats)
 
         tools = QHBoxLayout()
+        convert_btn = QPushButton("Convert old Recorder frames…")
+        convert_btn.setToolTip("Turn folders of frames from Krita's built-in Recorder into videos")
+        convert_btn.clicked.connect(self._convert)
+        lay.addWidget(convert_btn)
+
         open_btn = QPushButton("Open folder")
         open_btn.clicked.connect(self._open_folder)
         tools.addWidget(open_btn)
@@ -113,10 +118,6 @@ class TimelapseDocker(DockWidget):
         self.quality.currentIndexChanged.connect(lambda: settings.put("quality", self.quality.currentData()))
         form.addRow("Quality:", self.quality)
 
-        self.interval = QDoubleSpinBox(suffix=" s", minimum=0.1, maximum=60, singleStep=0.1, decimals=1)
-        self.interval.setValue(settings.get("interval"))
-        self.interval.valueChanged.connect(self._interval_changed)
-        form.addRow("Capture every:", self.interval)
 
         self.fps = QSpinBox(minimum=1, maximum=120)
         self.fps.setValue(settings.get("fps"))
@@ -267,10 +268,6 @@ class TimelapseDocker(DockWidget):
     def _encoder_changed(self):
         settings.put("encoder", self.encoder.currentData() or "")
 
-    def _interval_changed(self, v):
-        settings.put("interval", v)
-        RECORDER.restart_timer()
-
     def _pick_dir(self):
         d = QFileDialog.getExistingDirectory(self, "Timelapse folder", self.directory.text())
         if d:
@@ -299,6 +296,11 @@ class TimelapseDocker(DockWidget):
         if folder and load_info(folder):
             ExportDialog(folder, self).exec()
             self._refresh()
+
+    def _convert(self):
+        from .convert import ConvertDialog
+        ConvertDialog(self).exec()
+        self._refresh()
 
     def _discard(self):
         folder = self._current_folder()

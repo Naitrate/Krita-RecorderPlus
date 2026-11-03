@@ -23,8 +23,8 @@ import time
 from krita import Krita
 
 from . import encoders, settings
-from .qt import (QApplication, QColor, QImage, QMainWindow, QObject,
-                 QPainter, Qt, QTimer, image_bytes, pyqtSignal)
+from .qt import (QApplication, QColor, QEvent, QImage, QMainWindow, QObject,
+                 QPainter, Qt, QTimer, QWidget, image_bytes, pyqtSignal)
 
 MAX_QUEUE = 6
 
@@ -117,8 +117,17 @@ class Segment:
     def alive(self):
         return not self.error and self.proc.poll() is None
 
-    def push(self, data):
+    def push(self, data, block=False):
         if not self.alive:
+            return False
+        if block:
+            # Offline conversion: wait for the encoder instead of dropping.
+            while self.alive:
+                try:
+                    self._queue.put(data, timeout=0.5)
+                    return True
+                except queue.Full:
+                    pass
             return False
         try:
             self._queue.put_nowait(data)
@@ -154,6 +163,30 @@ class Segment:
         save_info(self.folder, self.info)
 
 
+# Canvas widget classes (OpenGL and software canvas).
+CANVAS_CLASSES = {"KisOpenGLCanvas2", "KisQPainterCanvas"}
+STROKE_DELAY_MS = 30
+ACTION_DELAY_MS = 150
+SETTLE_MS = 1200
+LOCK_RETRY_MS = 100
+_STROKE_END = {QEvent.Type.TabletRelease, QEvent.Type.MouseButtonRelease,
+               QEvent.Type.TouchEnd, QEvent.Type.KeyRelease}
+
+
+class _CanvasWatcher(QObject):
+    """Event filter on canvas widgets: a pen/mouse/touch release ends a
+    stroke (key release covers e.g. text and shortcut-driven tools)."""
+
+    def __init__(self, recorder):
+        super().__init__(recorder)
+        self._recorder = recorder
+
+    def eventFilter(self, obj, event):
+        if event.type() in _STROKE_END:
+            self._recorder.request_capture(STROKE_DELAY_MS)
+        return False
+
+
 class Recorder(QObject):
     changed = pyqtSignal()
 
@@ -171,18 +204,60 @@ class Recorder(QObject):
         self._seen_keys = set()      # documents already offered auto-record
         self._digests = {}           # key -> digest of last written frame
         self._failed = set()         # encoders that died this session
-        self._timer = QTimer(self)
-        self._timer.timeout.connect(self._tick)
+        # Bookkeeping poll (no capturing) and the coalescing capture timer.
+        self._watch_timer = QTimer(self)
+        self._watch_timer.timeout.connect(self._watch)
+        self._capture_timer = QTimer(self)
+        self._capture_timer.setSingleShot(True)
+        self._capture_timer.timeout.connect(self._tick)
+        self._canvas_filter = _CanvasWatcher(self)
+        self._hooked_actions = False
 
     # ---- control -------------------------------------------------------
 
     def start(self):
-        """Begin watching documents (the timer idles cheaply when the active
-        document isn't being recorded)."""
-        self.restart_timer()
+        """Begin watching documents. Capturing only happens for documents
+        with recording switched on."""
+        self._watch_timer.start(1000)
+        QApplication.instance().focusWindowChanged.connect(self._focus_changed)
 
-    def restart_timer(self):
-        self._timer.start(int(max(0.1, settings.get("interval")) * 1000))
+    def request_capture(self, delay_ms):
+        """Capture after delay_ms; multiple requests coalesce into one."""
+        if not self._capture_timer.isActive() or self._capture_timer.remainingTime() > delay_ms:
+            self._capture_timer.start(delay_ms)
+
+    # ---- capture triggers (event mode) -----------------------------------
+
+    def _hook_canvases(self):
+        """Watch every canvas widget for the end of strokes."""
+        for win in Krita.instance().windows():
+            qwin = win.qwindow()
+            if qwin is None:
+                continue
+            for w in qwin.findChildren(QWidget):
+                cls = w.metaObject().className()
+                if cls in CANVAS_CLASSES and not w.property("vt_watched"):
+                    w.setProperty("vt_watched", True)
+                    w.installEventFilter(self._canvas_filter)
+        if not self._hooked_actions:
+            # Every Krita action (fill, filters, transform, layer ops,
+            # undo/redo...) may change the image. View-only actions (zoom,
+            # pan) produce an identical frame, which is then dropped.
+            actions = Krita.instance().actions()
+            for action in actions:
+                action.triggered.connect(self._action_triggered)
+            self._hooked_actions = bool(actions)
+
+    def _action_triggered(self, *_):
+        self.request_capture(ACTION_DELAY_MS)
+        # Some actions finish asynchronously (fills, filters): look again.
+        QTimer.singleShot(SETTLE_MS, lambda: self.request_capture(0))
+
+    def _focus_changed(self, window):
+        # Returning to the main window after a dialog (filter, layer
+        # properties...) may have changed the image.
+        if window is not None:
+            self.request_capture(ACTION_DELAY_MS)
 
     @property
     def enabled(self):
@@ -242,7 +317,8 @@ class Recorder(QObject):
         self.changed.emit()
 
     def shutdown(self):
-        self._timer.stop()
+        self._watch_timer.stop()
+        self._capture_timer.stop()
         self.close_segment()
 
     # ---- capture -------------------------------------------------------
@@ -261,12 +337,16 @@ class Recorder(QObject):
             w, h = int(w * s), int(h * s)
         return max(2, w & ~1), max(2, h & ~1)
 
-    def _tick(self):
+    def _watch(self):
+        """Cheap bookkeeping, run every second: follow the active document,
+        auto-enable newly opened ones, hook new canvases. Returns the active
+        document if it is being recorded."""
         app = Krita.instance()
         doc = app.activeDocument()
+        self._hook_canvases()
         if doc is None:
             self.close_segment()
-            return
+            return None
 
         key = document_key(doc)
         if key not in self._seen_keys:
@@ -275,6 +355,7 @@ class Recorder(QObject):
             self._seen_keys.add(key)
             if settings.get("auto_record") and settings.ffmpeg_path():
                 self._enabled_keys.add(key)
+                self.request_capture(500)   # initial frame
         if key != self.key:
             self.close_segment()
             self.key = key
@@ -288,12 +369,30 @@ class Recorder(QObject):
 
         if key not in self._enabled_keys:
             self.close_segment()
+            return None
+        return doc
+
+    def _tick(self):
+        doc = self._watch()
+        if doc is None:
             return
         # Like Krita's recorder: only capture while the main window is focused,
         # so modal dialogs (filters, etc.) aren't disturbed.
         if not isinstance(QApplication.activeWindow(), QMainWindow):
             return
+        # Also like Krita's recorder: only when no stroke/filter is still being
+        # processed, so frames never show half-finished operations. Never
+        # blocks: if Krita is busy, try again shortly.
+        if not doc.tryBarrierLock():
+            self.request_capture(LOCK_RETRY_MS)
+            return
+        try:
+            self._capture(doc)
+        finally:
+            doc.unlock()
 
+    def _capture(self, doc):
+        key = self.key
         w, h = doc.width(), doc.height()
         if w * h * 4 >= 2 ** 31:
             self.status = "Canvas too large to record"

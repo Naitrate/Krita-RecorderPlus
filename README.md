@@ -6,8 +6,11 @@ raw into ffmpeg and hardware-encoded, so the disk only ever holds compressed
 video (typically a few KB per captured frame instead of hundreds).
 
 Capture behaviour mirrors Krita's built-in Recorder:
-- a capture every N seconds, only when the canvas actually changed, skipped
-  while a dialog has focus;
+- a frame is captured after every brush stroke (pen/mouse/touch release on
+  the canvas) and every Krita action (fill, filters, transforms, layer ops,
+  undo/redo, closing a dialog), once Krita has finished processing it (same
+  non-blocking image lock check as the built-in recorder); frames identical to
+  the previous one (pan, zoom) are dropped;
 - recording is on/off **per document**; with "record automatically" each
   document starts recording when it is opened or created;
 - one recording per document, identified by the document's creation date
@@ -20,7 +23,7 @@ Capture behaviour mirrors Krita's built-in Recorder:
 ## Settings
 
 Anything not changed in this docker defaults to the built-in Recorder's
-settings from `kritarc`: capture interval, resolution, record automatically,
+settings from `kritarc`: resolution, record automatically,
 export FPS, input FPS ("Captures per second" here), result preview / extend
 result seconds, and the video directory. Recordings go to
 `<Recorder snapshot directory>/Video Timelapse/`.
@@ -45,6 +48,11 @@ next one takes over. You can also pick one manually in the docker.
 - `info.json` — fps and resolution (fixed per recording), segments with their sizes
 - `last.png` — final frame, used for the "show result at start" option
 - `ffmpeg.log`
+
+**Convert old Recorder frames…** encodes the built-in Recorder's frame
+folders into this format. Folder names are the same document ids, so converted
+footage is placed in front of that document's newer recording. Originals can
+optionally be deleted once a conversion's frame count is verified.
 
 **Export…** joins segments into one MP4/MKV. With no extras it's a lossless
 stream copy (instant); "show result at start", "hold last frame", "limit

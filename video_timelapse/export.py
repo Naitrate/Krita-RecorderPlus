@@ -76,6 +76,10 @@ def plan(folder, info, out_path, preview, hold, limit, speed, out_fps):
                       "-update", "1", last_png])
 
     enc = RECORDER.chosen_encoder()
+    if max(w, h) > encoders.max_dim(enc):
+        # e.g. H.264 (4096 max) chosen but the canvas grew past it: use the
+        # best working encoder that can take the final size.
+        enc = next((e for e in RECORDER.detected if max(w, h) <= encoders.max_dim(e)), enc)
     if mixed:
         # Segments differ in size (canvas cropped/resized) or codec, which the
         # concat demuxer can't handle: decode each one, fit it into the final
