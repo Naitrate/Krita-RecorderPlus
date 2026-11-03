@@ -88,5 +88,6 @@
  "Quarter": "四分之一",
  "High": "高",
  "Balanced": "平衡",
- "Small file": "小檔案"
+ "Small file": "小檔案",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "暫時:若文件未儲存為 .kra 或 .psd,關閉時將被刪除。"
 }

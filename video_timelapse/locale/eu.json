@@ -88,5 +88,6 @@
  "Quarter": "Laurdena",
  "High": "Altua",
  "Balanced": "Orekatua",
- "Small file": "Fitxategi txikia"
+ "Small file": "Fitxategi txikia",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Behin-behinekoa: dokumentua ixtean ezabatzen da, .kra edo .psd gisa gordetzen ez bada."
 }

@@ -88,5 +88,6 @@
  "Quarter": "Četvrtina",
  "High": "Visoka",
  "Balanced": "Uravnotežena",
- "Small file": "Mala datoteka"
+ "Small file": "Mala datoteka",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Privremeno: briše se kad se dokument zatvori, osim ako nije sačuvan kao .kra ili .psd."
 }

@@ -16,6 +16,7 @@ import json
 import os
 import queue
 import re
+import shutil
 import subprocess
 import threading
 import time
@@ -28,6 +29,13 @@ from .qt import (QApplication, QColor, QEvent, QImage, QMainWindow, QObject,
                  QPainter, Qt, QTimer, QWidget, image_bytes, pyqtSignal)
 
 MAX_QUEUE = 6
+# Only documents in these formats keep their creation-date id across sessions
+# (and are files the user clearly means to keep). Recordings of anything else
+# (untitled canvases, opened PNG/JPG...) are temporary until saved as one.
+PERSISTENT_EXTENSIONS = (".kra", ".krz", ".psd")
+# Temporary recordings left behind by a crash are kept this long, in case
+# Krita's autosave recovery brings the document back.
+ORPHAN_DAYS = 3
 CHECKPOINT_SECONDS = 10
 
 
@@ -54,6 +62,28 @@ def save_info(folder, info):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(info, f, indent=2)
     os.replace(tmp, os.path.join(folder, "info.json"))
+
+
+def is_persistent_file(path):
+    return os.path.splitext(path or "")[1].lower() in PERSISTENT_EXTENSIONS
+
+
+def clean_orphans(root):
+    """Delete temporary recordings abandoned by a crash long enough ago."""
+    try:
+        names = os.listdir(root)
+    except OSError:
+        return
+    cutoff = time.time() - ORPHAN_DAYS * 86400
+    for name in names:
+        folder = os.path.join(root, name)
+        info = load_info(folder)
+        if info and info.get("temporary"):
+            try:
+                if os.path.getmtime(os.path.join(folder, "info.json")) < cutoff:
+                    shutil.rmtree(folder, ignore_errors=True)
+            except OSError:
+                pass
 
 
 def segment_paths(folder, info):
@@ -216,6 +246,7 @@ class Recorder(QObject):
         self._seen_keys = set()      # documents already offered auto-record
         self._digests = {}           # key -> digest of last written frame
         self._failed = set()         # encoders that died this session
+        self._temporary = {}         # key -> folder of temporary recordings
         # Bookkeeping poll (no capturing) and the coalescing capture timer.
         self._watch_timer = QTimer(self)
         self._watch_timer.timeout.connect(self._watch)
@@ -232,6 +263,10 @@ class Recorder(QObject):
         with recording switched on."""
         self._watch_timer.start(1000)
         QApplication.instance().focusWindowChanged.connect(self._focus_changed)
+        # Saving (including from the "save changes?" prompt on close) can turn
+        # a temporary recording into a kept one; check right away.
+        Krita.instance().notifier().imageSaved.connect(lambda *_: self._update_temporary())
+        clean_orphans(settings.get("directory"))
 
     def request_capture(self, delay_ms):
         """Capture after delay_ms; multiple requests coalesce into one."""
@@ -332,6 +367,44 @@ class Recorder(QObject):
         self._watch_timer.stop()
         self._capture_timer.stop()
         self.close_segment()
+        # Runs on aboutToQuit, i.e. after Krita's save prompts: whatever is
+        # still temporary was never saved as .kra/.psd.
+        self._update_temporary(closing=True)
+
+    # ---- temporary recordings ------------------------------------------
+
+    def is_temporary(self, folder):
+        info = self.segment.info if self.segment and self.folder == folder else load_info(folder)
+        return bool(info and info.get("temporary"))
+
+    def _update_temporary(self, closing=False):
+        """Promote temporary recordings whose document is now saved as
+        .kra/.psd; discard those whose document is gone."""
+        open_docs = {}
+        if not closing:
+            for doc in Krita.instance().documents():
+                open_docs[document_key(doc)] = doc
+        for key, folder in list(self._temporary.items()):
+            doc = open_docs.get(key)
+            if doc is not None and is_persistent_file(doc.fileName()):
+                self._set_temporary(key, folder, False)
+                del self._temporary[key]
+            elif doc is None:
+                if self.key == key:
+                    self.close_segment()
+                    self.key = None
+                del self._temporary[key]
+                self._digests.pop(key, None)
+                if self.is_temporary(folder):   # never delete a kept recording
+                    shutil.rmtree(folder, ignore_errors=True)
+                self.changed.emit()
+
+    def _set_temporary(self, key, folder, value):
+        info = self.segment.info if self.segment and self.key == key else load_info(folder)
+        if info is None:
+            return
+        info["temporary"] = value
+        save_info(folder, info)
 
     # ---- capture -------------------------------------------------------
 
@@ -376,9 +449,12 @@ class Recorder(QObject):
             info = load_info(self.folder)
             if info and key not in self._digests:
                 self._digests[key] = info.get("last_digest", "")
+            if info and info.get("temporary"):
+                self._temporary[key] = self.folder   # e.g. recovered after a crash
             self.status = tr("Recording") if key in self._enabled_keys else tr("Not recording this document")
             self.changed.emit()
 
+        self._update_temporary()
         if key not in self._enabled_keys:
             self.close_segment()
             return None
@@ -463,7 +539,10 @@ class Recorder(QObject):
             if info is None:
                 info = {"name": doc.name() or os.path.basename(doc.fileName()) or "Untitled",
                         "fps": settings.get("fps"), "resolution": resolution,
-                        "segments": []}
+                        "segments": [],
+                        "temporary": not is_persistent_file(doc.fileName())}
+            if info.get("temporary"):
+                self._temporary[key] = self.folder
             info["width"], info["height"] = tw, th   # latest size
             info["name"] = doc.name() or info.get("name", "")
             info["document"] = doc.fileName()

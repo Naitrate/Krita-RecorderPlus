@@ -88,5 +88,6 @@
  "Quarter": "Kvart",
  "High": "Høy",
  "Balanced": "Balansert",
- "Small file": "Liten fil"
+ "Small file": "Liten fil",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Midlertidig: slettes når dokumentet lukkes, med mindre det lagres som .kra eller .psd."
 }

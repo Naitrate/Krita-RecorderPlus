@@ -88,5 +88,6 @@
  "Quarter": "Chorak",
  "High": "Yuqori",
  "Balanced": "Muvozanatli",
- "Small file": "Kichik fayl"
+ "Small file": "Kichik fayl",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Vaqtinchalik: hujjat .kra yoki .psd sifatida saqlanmasa, yopilganda oʻchiriladi."
 }

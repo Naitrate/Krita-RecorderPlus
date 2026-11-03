@@ -88,5 +88,6 @@
  "Quarter": "Suku",
  "High": "Tinggi",
  "Balanced": "Seimbang",
- "Small file": "Fail kecil"
+ "Small file": "Fail kecil",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Sementara: dipadam apabila dokumen ditutup melainkan disimpan sebagai .kra atau .psd."
 }

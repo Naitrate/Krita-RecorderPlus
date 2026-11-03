@@ -88,5 +88,6 @@
  "Quarter": "पाव",
  "High": "उच्च",
  "Balanced": "संतुलित",
- "Small file": "लहान फाइल"
+ "Small file": "लहान फाइल",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "तात्पुरते: दस्तऐवज .kra किंवा .psd म्हणून जतन न केल्यास तो बंद करताच काढून टाकले जाईल."
 }

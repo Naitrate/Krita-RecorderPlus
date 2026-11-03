@@ -88,5 +88,6 @@
  "Quarter": "Ćwierć",
  "High": "Wysoka",
  "Balanced": "Zrównoważona",
- "Small file": "Mały plik"
+ "Small file": "Mały plik",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tymczasowe: zostanie usunięte po zamknięciu dokumentu, chyba że zapiszesz go jako .kra lub .psd."
 }

@@ -88,5 +88,6 @@
  "Quarter": "Quart",
  "High": "Alta",
  "Balanced": "Equilibrada",
- "Small file": "Fitxer petit"
+ "Small file": "Fitxer petit",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Temporal: se suprimix en tancar el document si no es guarda com a .kra o .psd."
 }

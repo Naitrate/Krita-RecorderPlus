@@ -88,5 +88,6 @@
  "Quarter": "მეოთხედი",
  "High": "მაღალი",
  "Balanced": "დაბალანსებული",
- "Small file": "პატარა ფაილი"
+ "Small file": "პატარა ფაილი",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "დროებითი: დოკუმენტის დახურვისას წაიშლება, თუ ის .kra ან .psd ფორმატში არ შეინახება."
 }

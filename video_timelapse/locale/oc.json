@@ -88,5 +88,6 @@
  "Quarter": "Quart",
  "High": "Nauta",
  "Balanced": "Equilibrada",
- "Small file": "Fichièr leugièr"
+ "Small file": "Fichièr leugièr",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Temporari : suprimit a la tampadura del document se es pas enregistrat en .kra o .psd."
 }

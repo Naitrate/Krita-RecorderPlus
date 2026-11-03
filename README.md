@@ -15,6 +15,12 @@ Capture behaviour mirrors Krita's built-in Recorder:
   document starts recording when it is opened or created;
 - one recording per document, identified by the document's creation date
   (stored in the .kra), so renames and Save As keep adding to it;
+- recordings of untitled documents, or of files that aren't .kra/.krz/.psd
+  (PNG, JPG…), are temporary: they are deleted when the document closes or
+  Krita quits unless it was saved as .kra/.psd by then (the "save changes?"
+  prompt counts). Anything that ever belonged to a .kra/.psd is never deleted.
+  Temporary recordings orphaned by a crash are kept 3 days for autosave
+  recovery, then cleaned up;
 - transparency is blended onto white, odd edges are truncated to even sizes;
 - frames follow the canvas size: after a crop/resize a new segment starts at
   the new size, and export fits everything into the **final** size with black
@@ -58,6 +64,15 @@ optionally be deleted once a conversion's frame count is verified.
 stream copy (instant); "show result at start", "hold last frame", "limit
 length", or sessions recorded with different codecs trigger a re-encode with the
 current encoder.
+
+## Languages
+
+The UI follows Krita's language (Settings → Switch Application Language, else
+the system language) and ships translations for all 74 languages Krita does.
+Catalogs are `video_timelapse/locale/<code>.json`, keyed by the English text;
+`python3 tools/check_strings.py` regenerates `template.json` and reports
+missing strings or placeholder mismatches per language. Many translations were
+machine-written and would benefit from native-speaker review.
 
 ## Install
 

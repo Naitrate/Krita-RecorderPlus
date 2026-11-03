@@ -88,5 +88,6 @@
  "Quarter": "Sfert",
  "High": "Înaltă",
  "Balanced": "Echilibrată",
- "Small file": "Fișier mic"
+ "Small file": "Fișier mic",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Temporară: se șterge la închiderea documentului dacă nu este salvat ca .kra sau .psd."
 }

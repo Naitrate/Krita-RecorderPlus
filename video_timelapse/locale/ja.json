@@ -88,5 +88,6 @@
  "Quarter": "1/4",
  "High": "高画質",
  "Balanced": "バランス",
- "Small file": "小さいファイル"
+ "Small file": "小さいファイル",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "一時的: ドキュメントを .kra または .psd として保存しないと、閉じたときに削除されます。"
 }

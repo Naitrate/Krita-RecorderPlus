@@ -88,5 +88,6 @@
  "Quarter": "Kwart",
  "High": "Hoog",
  "Balanced": "Gebalanceerd",
- "Small file": "Klein bestand"
+ "Small file": "Klein bestand",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tijdelijk: wordt verwijderd bij het sluiten van het document, tenzij het als .kra of .psd is opgeslagen."
 }

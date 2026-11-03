@@ -88,5 +88,6 @@
  "Quarter": "1/4",
  "High": "높음",
  "Balanced": "균형",
- "Small file": "작은 파일"
+ "Small file": "작은 파일",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "임시: 문서를 .kra 또는 .psd로 저장하지 않으면 문서를 닫을 때 삭제됩니다."
 }

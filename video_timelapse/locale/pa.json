@@ -88,5 +88,6 @@
  "Quarter": "ਚੌਥਾਈ",
  "High": "ਉੱਚ",
  "Balanced": "ਸੰਤੁਲਿਤ",
- "Small file": "ਛੋਟੀ ਫ਼ਾਈਲ"
+ "Small file": "ਛੋਟੀ ਫ਼ਾਈਲ",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "ਅਸਥਾਈ: ਜੇ ਦਸਤਾਵੇਜ਼ .kra ਜਾਂ .psd ਵਜੋਂ ਸੰਭਾਲਿਆ ਨਾ ਗਿਆ ਤਾਂ ਬੰਦ ਹੋਣ 'ਤੇ ਹਟਾ ਦਿੱਤਾ ਜਾਵੇਗਾ।"
 }

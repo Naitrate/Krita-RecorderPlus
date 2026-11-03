@@ -88,5 +88,6 @@
  "Quarter": "Kvarona",
  "High": "Alta",
  "Balanced": "Ekvilibra",
- "Small file": "Malgranda dosiero"
+ "Small file": "Malgranda dosiero",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Provizora: forigita kiam la dokumento fermiĝas, krom se ĝi estas konservita kiel .kra aŭ .psd."
 }

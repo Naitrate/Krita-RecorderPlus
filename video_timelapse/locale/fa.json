@@ -88,5 +88,6 @@
  "Quarter": "یک‌چهارم",
  "High": "بالا",
  "Balanced": "متعادل",
- "Small file": "فایل کوچک"
+ "Small file": "فایل کوچک",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "موقت: هنگام بستن سند حذف می‌شود، مگر اینکه با قالب ‎.kra‎ یا ‎.psd‎ ذخیره شود."
 }

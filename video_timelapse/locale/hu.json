@@ -88,5 +88,6 @@
  "Quarter": "Negyed",
  "High": "Magas",
  "Balanced": "Kiegyensúlyozott",
- "Small file": "Kis fájl"
+ "Small file": "Kis fájl",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Ideiglenes: a dokumentum bezárásakor törlődik, hacsak nincs .kra vagy .psd formátumban mentve."
 }

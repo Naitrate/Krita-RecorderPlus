@@ -88,5 +88,6 @@
  "Quarter": "Четвърт",
  "High": "Високо",
  "Balanced": "Балансирано",
- "Small file": "Малък файл"
+ "Small file": "Малък файл",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Временно: изтрива се при затваряне на документа, освен ако не е запазен като .kra или .psd."
 }

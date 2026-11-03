@@ -228,10 +228,13 @@ class TimelapseDocker(DockWidget):
             size = sum(os.path.getsize(p) for p in paths)
             frames = sum(s.get("frames", 0) for s in info["segments"]) + (seg.frames if seg else 0)
             secs = frames / max(1, info["fps"])
-            self.stats.setText(tr("{name}: {frames} frames ({seconds} s of video), {size}, "
-                                  "{width}×{height} @ {fps} fps").format(
+            text = tr("{name}: {frames} frames ({seconds} s of video), {size}, "
+                      "{width}×{height} @ {fps} fps").format(
                 name=info.get("name", ""), frames=frames, seconds=f"{secs:.0f}", size=human_size(size),
-                width=info["width"], height=info["height"], fps=info["fps"]))
+                width=info["width"], height=info["height"], fps=info["fps"])
+            if RECORDER.is_temporary(folder):
+                text += "\n" + tr("Temporary: deleted when the document closes unless it is saved as .kra or .psd.")
+            self.stats.setText(text)
         else:
             self.stats.setText(tr("No recording for this document yet.") if folder else tr("No document open."))
         has = bool(info and info.get("segments"))

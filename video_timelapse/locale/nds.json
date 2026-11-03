@@ -88,5 +88,6 @@
  "Quarter": "Veddel",
  "High": "Hooch",
  "Balanced": "Utwogen",
- "Small file": "Lütte Datei"
+ "Small file": "Lütte Datei",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Temporär: warrt wegdaan, wenn dat Dokment tomaakt warrt, wenn dat nich as .kra oder .psd sekert is."
 }

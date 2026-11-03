@@ -88,5 +88,6 @@
  "Quarter": "Štvrtinové",
  "High": "Vysoká",
  "Balanced": "Vyvážená",
- "Small file": "Malý súbor"
+ "Small file": "Malý súbor",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Dočasné: vymaže sa pri zatvorení dokumentu, ak nie je uložený ako .kra alebo .psd."
 }

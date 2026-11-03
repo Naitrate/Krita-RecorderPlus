@@ -88,5 +88,6 @@
  "Quarter": "Чоряк",
  "High": "Баланд",
  "Balanced": "Мувозинатнок",
- "Small file": "Файли хурд"
+ "Small file": "Файли хурд",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Муваққатӣ: агар ҳуҷҷат ҳамчун .kra ё .psd нигоҳ дошта нашавад, ҳангоми пӯшидан нест карда мешавад."
 }

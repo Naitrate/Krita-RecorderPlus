@@ -88,5 +88,6 @@
  "Quarter": "கால்",
  "High": "உயர்",
  "Balanced": "சமநிலை",
- "Small file": "சிறிய கோப்பு"
+ "Small file": "சிறிய கோப்பு",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "தற்காலிகம்: ஆவணம் .kra அல்லது .psd ஆகச் சேமிக்கப்படாவிட்டால் மூடும்போது நீக்கப்படும்."
 }

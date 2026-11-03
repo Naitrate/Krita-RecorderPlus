@@ -88,5 +88,6 @@
  "Quarter": "Τέταρτο",
  "High": "Υψηλή",
  "Balanced": "Ισορροπημένη",
- "Small file": "Μικρό αρχείο"
+ "Small file": "Μικρό αρχείο",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Προσωρινό: διαγράφεται όταν κλείσει το έγγραφο, εκτός αν αποθηκευτεί ως .kra ή .psd."
 }

@@ -88,5 +88,6 @@
  "Quarter": "Một phần tư",
  "High": "Cao",
  "Balanced": "Cân bằng",
- "Small file": "Tệp nhỏ"
+ "Small file": "Tệp nhỏ",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tạm thời: sẽ bị xoá khi đóng tài liệu nếu không được lưu dưới dạng .kra hoặc .psd."
 }

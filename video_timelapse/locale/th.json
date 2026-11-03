@@ -88,5 +88,6 @@
  "Quarter": "หนึ่งในสี่",
  "High": "สูง",
  "Balanced": "สมดุล",
- "Small file": "ไฟล์เล็ก"
+ "Small file": "ไฟล์เล็ก",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "ชั่วคราว: จะถูกลบเมื่อปิดเอกสาร เว้นแต่จะบันทึกเป็น .kra หรือ .psd"
 }

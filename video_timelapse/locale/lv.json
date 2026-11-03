@@ -88,5 +88,6 @@
  "Quarter": "Ceturtdaļa",
  "High": "Augsta",
  "Balanced": "Līdzsvarota",
- "Small file": "Mazs fails"
+ "Small file": "Mazs fails",
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Pagaidu: tiek dzēsts, aizverot dokumentu, ja vien tas nav saglabāts kā .kra vai .psd."
 }
