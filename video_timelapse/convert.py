@@ -216,14 +216,14 @@ class ConvertDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Convert Krita Recorder Frames")
+        self.setWindowTitle("Recorder+ — Convert Krita Recorder Frames")
         self.setMinimumSize(560, 460)
         self.converter = None
         self.freed = 0
 
         lay = QVBoxLayout(self)
         intro = QLabel("Encodes folders of frames made by Krita's built-in Recorder into video "
-                       "recordings for this plugin. Each one is matched to its document, so "
+                       "recordings for Recorder+. Each one is matched to its document, so "
                        "it can be exported together with anything recorded since.")
         intro.setWordWrap(True)
         lay.addWidget(intro)

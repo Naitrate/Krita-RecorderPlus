@@ -24,6 +24,7 @@ DEFAULTS = {
 }
 
 _UNSET = "\x00unset"
+SUBFOLDER = "Video Timelapse"
 
 
 def _builtin(key):
@@ -38,7 +39,7 @@ def _builtin(key):
 
     if key == "directory":
         d = rd("recorder/snapshotdirectory")
-        return os.path.join(d, "Video Timelapse") if d else None
+        return os.path.join(d, SUBFOLDER) if d else None
     if key == "export_dir":
         return rd("recorder_export/videodirectory")
     if key == "export_preview":

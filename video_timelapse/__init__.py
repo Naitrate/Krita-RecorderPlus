@@ -23,7 +23,7 @@ class VideoTimelapseExtension(Extension):
         RECORDER.start()
 
     def createActions(self, window):
-        action = window.createAction(TOGGLE_ID, "Toggle Video Timelapse Recording", "tools")
+        action = window.createAction(TOGGLE_ID, "Toggle Recorder+ Recording", "tools")
         action.setCheckable(True)
         action.setChecked(RECORDER.enabled)
         action.toggled.connect(RECORDER.set_enabled)

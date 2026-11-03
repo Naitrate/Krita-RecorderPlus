@@ -1,4 +1,4 @@
-# Video Timelapse for Krita
+# Recorder+ for Krita
 
 A Krita docker that records your canvas into a **video file** instead of
 thousands of JPEG/PNG frames like the built-in Recorder does. Frames are piped
@@ -62,7 +62,7 @@ current encoder.
 ## Install
 
 Symlink or copy `video_timelapse/` and `video_timelapse.desktop` into
-`~/.local/share/krita/pykrita/`, enable *Video Timelapse* in
+`~/.local/share/krita/pykrita/`, enable *Recorder+* in
 Settings → Configure Krita → Python Plugin Manager, restart, then
-Settings → Dockers → Video Timelapse. A shortcut can be bound to
-"Toggle Video Timelapse Recording". Requires ffmpeg (on PATH or set in the docker).
+Settings → Dockers → Recorder+. A shortcut can be bound to
+"Toggle Recorder+ Recording". Requires ffmpeg (on PATH or set in the docker).

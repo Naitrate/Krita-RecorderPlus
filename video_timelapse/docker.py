@@ -62,7 +62,7 @@ class TimelapseDocker(DockWidget):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Video Timelapse")
+        self.setWindowTitle("Recorder+")
         root = QWidget()
         lay = QVBoxLayout(root)
 
@@ -269,7 +269,7 @@ class TimelapseDocker(DockWidget):
         settings.put("encoder", self.encoder.currentData() or "")
 
     def _pick_dir(self):
-        d = QFileDialog.getExistingDirectory(self, "Timelapse folder", self.directory.text())
+        d = QFileDialog.getExistingDirectory(self, "Recordings folder", self.directory.text())
         if d:
             self.directory.setText(d)
             settings.put("directory", d)
@@ -308,7 +308,7 @@ class TimelapseDocker(DockWidget):
         if not info:
             return
         answer = QMessageBox.question(self, "Discard recording",
-                                      f"Permanently delete the timelapse recording for "
+                                      f"Permanently delete the Recorder+ recording for "
                                       f"“{info.get('name', '')}”?\n\n{folder}")
         if answer != QMessageBox.StandardButton.Yes:
             return

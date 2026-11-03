@@ -124,7 +124,7 @@ class ExportDialog(QDialog):
         super().__init__(parent)
         self.folder = folder
         self.info = load_info(folder)
-        self.setWindowTitle("Export Timelapse")
+        self.setWindowTitle("Recorder+ Export")
         self.setMinimumWidth(480)
 
         segs = segment_paths(folder, self.info)
@@ -208,7 +208,7 @@ class ExportDialog(QDialog):
             RECORDER.close_segment()
         self.info = load_info(self.folder)
         if not segment_paths(self.folder, self.info):
-            QMessageBox.warning(self, "Export Timelapse", "This recording has no video yet.")
+            QMessageBox.warning(self, "Recorder+ Export", "This recording has no video yet.")
             return
         out = self.path.text().strip()
         if not os.path.splitext(out)[1]:
@@ -254,7 +254,7 @@ class ExportDialog(QDialog):
         if code != 0:
             self.export_btn.setEnabled(True)
             self.bar.hide()
-            QMessageBox.warning(self, "Export Timelapse", "ffmpeg failed:\n\n"
+            QMessageBox.warning(self, "Recorder+ Export", "ffmpeg failed:\n\n"
                                 + self._stderr.decode("utf-8", "replace")[-1500:])
             return
         self._next()
