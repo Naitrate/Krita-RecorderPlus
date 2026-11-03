@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=video_timelapse
+X-Python-2-Compatible=false
+Name=Video Timelapse
+Comment=Records a timelapse straight into a (GPU-encoded) video file instead of individual frames
