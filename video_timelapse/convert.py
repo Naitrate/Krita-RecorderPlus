@@ -19,6 +19,7 @@ import time
 
 from . import encoders, settings
 from .export import human_size
+from .i18n import tr
 from .qt import (QCheckBox, QColor, QDialog, QDialogButtonBox, QFileDialog,
                  QHBoxLayout, QImage, QLabel, QLineEdit, QListWidget,
                  QListWidgetItem, QMessageBox, QObject, QPainter,
@@ -109,8 +110,8 @@ class Converter(QObject):
                 if not result.get("error"):
                     converted += 1
                 self.job_done.emit(result)
-        self.finished.emit("Cancelled." if self.cancelled else
-                           f"Converted {converted} of {len(self.jobs)} recording(s).")
+        self.finished.emit(tr("Cancelled.") if self.cancelled else
+                           tr("Converted {done} of {total} recording(s).").format(done=converted, total=len(self.jobs)))
 
     def _convert(self, job, done, total):
         folder = os.path.join(self.dest_root, job["key"])
@@ -140,13 +141,14 @@ class Converter(QObject):
                 if seg is not None:
                     seg.close()
                 tmp["width"], tmp["height"] = frame.width(), frame.height()
-                seg = Segment(staging, tmp, self.encoder, self.quality)
+                seg = Segment(staging, tmp, self.encoder, self.quality, live=False)
             if not seg.push(image_bytes(frame), block=True):
-                raise RuntimeError(seg.error or "ffmpeg exited; see ffmpeg.log")
+                raise RuntimeError(seg.error or tr("ffmpeg exited; see ffmpeg.log in the recording folder"))
             last = frame
             written += 1
             if i % 25 == 0:
-                self.progress.emit(done + i, total, f"{name}: frame {i + 1} of {len(job['frames'])}")
+                self.progress.emit(done + i, total, tr("{name}: frame {current} of {total}").format(
+                    name=name, current=i + 1, total=len(job["frames"])))
         if seg is not None:
             seg.close()
         if self.cancelled:
@@ -187,7 +189,7 @@ def merge(result):
         os.replace(os.path.join(staging, s["file"]), os.path.join(folder, s["file"]))
     if info is None:
         last = tmp["segments"][-1]
-        info = {"name": f"Recorder import {describe_key(result['job']['key'])}",
+        info = {"name": tr("Recorder import {date}").format(date=describe_key(result["job"]["key"])),
                 "fps": tmp["fps"], "width": last["width"], "height": last["height"],
                 "segments": []}
         os.replace(os.path.join(staging, "last.png"), os.path.join(folder, "last.png"))
@@ -216,15 +218,15 @@ class ConvertDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Recorder+ — Convert Krita Recorder Frames")
+        self.setWindowTitle("Recorder+ — " + tr("Convert Krita Recorder Frames"))
         self.setMinimumSize(560, 460)
         self.converter = None
         self.freed = 0
 
         lay = QVBoxLayout(self)
-        intro = QLabel("Encodes folders of frames made by Krita's built-in Recorder into video "
-                       "recordings for Recorder+. Each one is matched to its document, so "
-                       "it can be exported together with anything recorded since.")
+        intro = QLabel(tr("Encodes folders of frames made by Krita's built-in Recorder into video "
+                          "recordings for Recorder+. Each one is matched to its document, so "
+                          "it can be exported together with anything recorded since."))
         intro.setWordWrap(True)
         lay.addWidget(intro)
 
@@ -232,9 +234,9 @@ class ConvertDialog(QDialog):
         self.source = QLineEdit(builtin_snapshot_dir())
         browse = QPushButton("…")
         browse.clicked.connect(self._browse)
-        scan_btn = QPushButton("Scan")
+        scan_btn = QPushButton(tr("Scan"))
         scan_btn.clicked.connect(self._scan)
-        row.addWidget(QLabel("Frames folder:"))
+        row.addWidget(QLabel(tr("Frames folder:")))
         row.addWidget(self.source, 1)
         row.addWidget(browse)
         row.addWidget(scan_btn)
@@ -243,8 +245,8 @@ class ConvertDialog(QDialog):
         self.list = QListWidget()
         lay.addWidget(self.list, 1)
 
-        self.delete = QCheckBox("Delete the original frames after each successful conversion")
-        self.delete.setToolTip("Only after the video's frame count matches the number of frames read.")
+        self.delete = QCheckBox(tr("Delete the original frames after each successful conversion"))
+        self.delete.setToolTip(tr("Only after the video's frame count matches the number of frames read."))
         lay.addWidget(self.delete)
 
         self.label = QLabel()
@@ -255,14 +257,14 @@ class ConvertDialog(QDialog):
         lay.addWidget(self.bar)
 
         self.buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
-        self.go = self.buttons.addButton("Convert", QDialogButtonBox.ButtonRole.ActionRole)
+        self.go = self.buttons.addButton(tr("Convert"), QDialogButtonBox.ButtonRole.ActionRole)
         self.go.clicked.connect(self._start)
         self.buttons.rejected.connect(self.reject)
         lay.addWidget(self.buttons)
         self._scan()
 
     def _browse(self):
-        d = QFileDialog.getExistingDirectory(self, "Krita Recorder folder", self.source.text())
+        d = QFileDialog.getExistingDirectory(self, tr("Krita Recorder folder"), self.source.text())
         if d:
             self.source.setText(d)
             self._scan()
@@ -273,20 +275,21 @@ class ConvertDialog(QDialog):
         jobs = scan(self.source.text())
         for job in jobs:
             done = already_imported(dest, job)
-            text = (f"{describe_key(job['key'])}  —  {len(job['frames'])} frames, "
-                    f"{human_size(job['bytes'])}")
+            text = describe_key(job["key"]) + "  —  " + tr("{frames} frames, {size}").format(
+                frames=len(job["frames"]), size=human_size(job["bytes"]))
             if done:
-                text += "  (already converted)"
+                text += "  " + tr("(already converted)")
             elif job["in_use"]:
-                text += "  (still being recorded? turn off the built-in Recorder first)"
+                text += "  " + tr("(still being recorded? turn off the built-in Recorder first)")
             item = QListWidgetItem(text)
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(Qt.CheckState.Unchecked if done or job["in_use"] else Qt.CheckState.Checked)
             item.setData(Qt.ItemDataRole.UserRole, job)
             self.list.addItem(item)
         total = sum(j["bytes"] for j in jobs)
-        self.label.setText(f"Found {len(jobs)} recording(s) using {human_size(total)}." if jobs
-                           else "No Krita Recorder frame folders found here.")
+        self.label.setText(tr("Found {count} recording(s) using {size}.").format(
+            count=len(jobs), size=human_size(total)) if jobs
+            else tr("No Krita Recorder frame folders found here."))
 
     def _checked_jobs(self):
         out = []
@@ -302,13 +305,13 @@ class ConvertDialog(QDialog):
             return
         if self.delete.isChecked():
             size = human_size(sum(j["bytes"] for j in jobs))
-            if QMessageBox.question(self, "Delete originals",
-                                    f"After each recording converts and its frame count checks out, "
-                                    f"its original frame images ({size} in total) will be permanently "
-                                    f"deleted. Continue?") != QMessageBox.StandardButton.Yes:
+            if QMessageBox.question(self, tr("Delete originals"),
+                                    tr("After each recording converts and its frame count checks out, "
+                                       "its original frame images ({size} in total) will be permanently "
+                                       "deleted. Continue?").format(size=size)) != QMessageBox.StandardButton.Yes:
                 return
         if not settings.ffmpeg_path():
-            QMessageBox.warning(self, "Convert", "ffmpeg was not found.")
+            QMessageBox.warning(self, tr("Convert"), tr("ffmpeg was not found."))
             return
         self.go.setEnabled(False)
         self.list.setEnabled(False)
@@ -331,7 +334,8 @@ class ConvertDialog(QDialog):
     def _job_done(self, result):
         job = result["job"]
         if result.get("error"):
-            QMessageBox.warning(self, "Convert", f"{describe_key(job['key'])} failed:\n{result['error']}")
+            QMessageBox.warning(self, tr("Convert"), tr("{name} failed:").format(
+                name=describe_key(job["key"])) + "\n" + result["error"])
             return
         merge(result)
         if self._delete and result["verified"] and not result["skipped"]:
@@ -341,7 +345,7 @@ class ConvertDialog(QDialog):
     def _finished(self, summary):
         self.bar.setValue(1000)
         if self.freed:
-            summary += f" Freed {human_size(self.freed)}."
+            summary += " " + tr("Freed {size}.").format(size=human_size(self.freed))
         self.label.setText(summary)
         self.go.setEnabled(True)
         self.list.setEnabled(True)
@@ -351,8 +355,8 @@ class ConvertDialog(QDialog):
 
     def reject(self):
         if self.converter is not None:
-            if QMessageBox.question(self, "Convert", "Stop converting? The recording in progress "
-                                    "is discarded; finished ones are kept.") != QMessageBox.StandardButton.Yes:
+            if QMessageBox.question(self, tr("Convert"), tr("Stop converting? The recording in progress "
+                                    "is discarded; finished ones are kept.")) != QMessageBox.StandardButton.Yes:
                 return
             self.converter.cancelled = True
         super().reject()

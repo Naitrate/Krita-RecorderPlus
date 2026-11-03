@@ -23,10 +23,12 @@ import time
 from krita import Krita
 
 from . import encoders, settings
+from .i18n import tr
 from .qt import (QApplication, QColor, QEvent, QImage, QMainWindow, QObject,
                  QPainter, Qt, QTimer, QWidget, image_bytes, pyqtSignal)
 
 MAX_QUEUE = 6
+CHECKPOINT_SECONDS = 10
 
 
 def document_key(doc):
@@ -62,7 +64,7 @@ def segment_paths(folder, info):
 class Segment:
     """One ffmpeg process fed from a background writer thread."""
 
-    def __init__(self, folder, info, encoder, quality):
+    def __init__(self, folder, info, encoder, quality, live=True):
         self.folder = folder
         self.info = info
         self.encoder = encoder
@@ -82,13 +84,14 @@ class Segment:
                "-f", "rawvideo", "-pix_fmt", "bgr0", "-video_size", f"{w}x{h}",
                "-framerate", str(fps), "-i", "pipe:0",
                "-vf", encoders.video_filter(encoder),
-               *encoders.codec_args(encoder, quality, fps),
-               *encoders.COLOR_TAGS, self.path]
+               *encoders.codec_args(encoder, quality, fps, live=live),
+               *encoders.COLOR_TAGS, *(encoders.LIVE_MUX if live else []), self.path]
         self._log = open(os.path.join(folder, "ffmpeg.log"), "ab")
         self._log.write(("\n# " + " ".join(cmd) + "\n").encode())
         self._log.flush()
         self.proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
                                      stderr=self._log, creationflags=encoders.NO_WINDOW)
+        self._last_checkpoint = time.time()
         self._queue = queue.Queue(MAX_QUEUE)
         self._thread = threading.Thread(target=self._pump, daemon=True)
         self._thread.start()
@@ -106,12 +109,21 @@ class Segment:
                 self.proc.stdin.write(data)
                 self.frames += 1
             except (BrokenPipeError, OSError, ValueError) as e:
-                self.error = f"ffmpeg stopped accepting frames ({e}); see ffmpeg.log"
+                self.error = tr("ffmpeg stopped accepting frames ({error}); see ffmpeg.log").format(error=e)
                 break
         try:
             self.proc.stdin.close()
         except OSError:
             pass
+
+    def checkpoint(self, last_digest=""):
+        """Record progress in info.json so a crash leaves accurate metadata."""
+        for s in self.info["segments"]:
+            if s["file"] == self.file:
+                s["frames"] = self.frames
+        self.info["last_digest"] = last_digest
+        save_info(self.folder, self.info)
+        self._last_checkpoint = time.time()
 
     @property
     def alive(self):
@@ -192,7 +204,7 @@ class Recorder(QObject):
 
     def __init__(self):
         super().__init__()
-        self.status = "Idle"
+        self.status = tr("Idle")
         self.segment = None
         self.key = None
         self.folder = None
@@ -274,17 +286,17 @@ class Recorder(QObject):
         if on == (key in self._enabled_keys):
             return
         if on and not settings.ffmpeg_path():
-            self.status = "ffmpeg not found — set its path in the docker"
+            self.status = tr("ffmpeg not found — set its path in the docker")
             self.changed.emit()
             return
         if on:
             self._enabled_keys.add(key)
-            self.status = "Recording"
+            self.status = tr("Recording")
         else:
             self._enabled_keys.discard(key)
             if self.key == key:
                 self.close_segment()
-            self.status = "Not recording this document"
+            self.status = tr("Not recording this document")
         self.changed.emit()
 
     def chosen_encoder(self):
@@ -364,7 +376,7 @@ class Recorder(QObject):
             info = load_info(self.folder)
             if info and key not in self._digests:
                 self._digests[key] = info.get("last_digest", "")
-            self.status = "Recording" if key in self._enabled_keys else "Not recording this document"
+            self.status = tr("Recording") if key in self._enabled_keys else tr("Not recording this document")
             self.changed.emit()
 
         if key not in self._enabled_keys:
@@ -395,7 +407,7 @@ class Recorder(QObject):
         key = self.key
         w, h = doc.width(), doc.height()
         if w * h * 4 >= 2 ** 31:
-            self.status = "Canvas too large to record"
+            self.status = tr("Canvas too large to record")
             self.changed.emit()
             return
 
@@ -442,9 +454,10 @@ class Recorder(QObject):
                     # Passed the probe but died on real frames (e.g. size
                     # limits): fall through to the next encoder in line.
                     self._failed.add(dead.encoder)
-                    self.status = f"{dead.encoder} failed, falling back to {self.chosen_encoder()}"
+                    self.status = tr("{failed} failed, falling back to {encoder}").format(
+                        failed=dead.encoder, encoder=self.chosen_encoder())
                 else:
-                    self._fail(dead.error or "ffmpeg exited; see ffmpeg.log in the recording folder")
+                    self._fail(dead.error or tr("ffmpeg exited; see ffmpeg.log in the recording folder"))
                     return
             os.makedirs(self.folder, exist_ok=True)
             if info is None:
@@ -457,15 +470,17 @@ class Recorder(QObject):
             try:
                 self.segment = Segment(self.folder, info, self.chosen_encoder(), settings.get("quality"))
             except OSError as e:
-                self._fail(f"Could not start ffmpeg: {e}")
+                self._fail(tr("Could not start ffmpeg: {error}").format(error=e))
                 return
 
         if self.segment.push(data):
             self._digests[key] = digest
             self.last_image = frame
-            self.status = "Recording"
+            self.status = tr("Recording")
+            if time.time() - self.segment._last_checkpoint > CHECKPOINT_SECONDS:
+                self.segment.checkpoint(digest)
         else:
-            self.status = "Encoder falling behind — frame dropped"
+            self.status = tr("Encoder falling behind — frame dropped")
         self.changed.emit()
 
 

@@ -116,7 +116,28 @@ def filter_tail(encoder):
     return ["format=yuv420p"]
 
 
-def codec_args(encoder, quality, fps):
+# Live recording writes about one frame per stroke, so an encoder holding
+# frames back (B-frames, lookahead, async queues) would keep the last strokes
+# off disk. These make each frame come out as soon as it goes in.
+_LOW_LATENCY = {
+    "nvenc": ["-bf", "0", "-delay", "0", "-zerolatency", "1"],
+    "nvenc_av1": ["-bf", "0", "-delay", "0", "-zerolatency", "1"],
+    "vaapi": ["-bf", "0", "-async_depth", "1"],
+    "qsv": ["-bf", "0", "-async_depth", "1"],
+    "amf": ["-bf", "0"],
+    "vt": ["-bf", "0", "-realtime", "1"],
+    "x264": ["-tune", "zerolatency"],
+    "x265": ["-tune", "zerolatency"],
+    "svtav1": ["-bf", "0"],
+}
+
+# Matroska normally buffers ~5 s of video per cluster (hundreds of strokes at
+# one frame per stroke); write and flush every frame instead so a crash loses
+# nothing.
+LIVE_MUX = ["-flush_packets", "1", "-cluster_time_limit", "0", "-cluster_size_limit", "1"]
+
+
+def codec_args(encoder, quality, fps, live=False):
     i = _QI.get(quality, 1)
     family = BY_ID[encoder][2]
     if family == "nvenc":
@@ -142,6 +163,8 @@ def codec_args(encoder, quality, fps):
         args = ["-preset", "medium", "-crf", str([20, 26, 31][i]), "-x265-params", "log-level=error"]
     else:  # svtav1
         args = ["-preset", "8", "-crf", str([26, 34, 42][i])]
+    if live:
+        args += _LOW_LATENCY.get(family, [])
     return ["-c:v", encoder, *args, "-g", str(max(1, int(fps)) * 10)]
 
 
@@ -173,7 +196,7 @@ def probe(ffmpeg):
         cmd = [ffmpeg, "-hide_banner", "-loglevel", "error", *input_args(enc),
                "-f", "lavfi", "-i", "color=c=gray:s=320x240:r=30",
                "-frames:v", "5", "-vf", video_filter(enc),
-               *codec_args(enc, "medium", 30), "-f", "null", "-"]
+               *codec_args(enc, "medium", 30, live=True), "-f", "null", "-"]
         try:
             if run_quiet(cmd, 20).returncode == 0:
                 working.append(enc)

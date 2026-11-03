@@ -4,6 +4,7 @@ extras (final image shown at the start, held at the end, length limit)."""
 import os
 
 from . import encoders, settings
+from .i18n import tr
 from .qt import (QDialog, QDialogButtonBox, QDoubleSpinBox, QFileDialog,
                  QFormLayout, QHBoxLayout, QLabel, QLineEdit, QMessageBox,
                  QProcess, QProgressBar, QPushButton, QSpinBox, QVBoxLayout)
@@ -124,15 +125,16 @@ class ExportDialog(QDialog):
         super().__init__(parent)
         self.folder = folder
         self.info = load_info(folder)
-        self.setWindowTitle("Recorder+ Export")
+        self.setWindowTitle("Recorder+ — " + tr("Export"))
         self.setMinimumWidth(480)
 
         segs = segment_paths(folder, self.info)
         size = sum(os.path.getsize(p) for p in segs)
         lay = QVBoxLayout(self)
-        lay.addWidget(QLabel(f"<b>{self.info.get('name', '')}</b> — {len(segs)} session(s), "
-                             f"{self.info['width']}×{self.info['height']} @ {self.info['fps']} fps, "
-                             f"{human_size(size)}"))
+        lay.addWidget(QLabel(f"<b>{self.info.get('name', '')}</b> — " + tr(
+            "{sessions} session(s), {width}×{height} @ {fps} fps, {size}").format(
+            sessions=len(segs), width=self.info["width"], height=self.info["height"],
+            fps=self.info["fps"], size=human_size(size))))
 
         form = QFormLayout()
         row = QHBoxLayout()
@@ -141,31 +143,32 @@ class ExportDialog(QDialog):
         browse.clicked.connect(self._browse)
         row.addWidget(self.path)
         row.addWidget(browse)
-        form.addRow("Output file:", row)
+        form.addRow(tr("Output file:"), row)
 
         self.preview = QDoubleSpinBox(suffix=" s", maximum=60, singleStep=0.5)
         self.preview.setValue(settings.get("export_preview"))
-        self.preview.setToolTip("Show the finished image for this long before the timelapse plays.")
-        form.addRow("Show result at start:", self.preview)
+        self.preview.setToolTip(tr("Show the finished image for this long before the timelapse plays."))
+        form.addRow(tr("Show result at start:"), self.preview)
         self.hold = QDoubleSpinBox(suffix=" s", maximum=60, singleStep=0.5)
         self.hold.setValue(settings.get("export_hold"))
-        form.addRow("Hold last frame:", self.hold)
+        form.addRow(tr("Hold last frame:"), self.hold)
         self.speed = QSpinBox(minimum=1, maximum=10000)
         self.speed.setValue(settings.get("export_speed") or self.info["fps"])
-        self.speed.setToolTip("How many captures play per second of video (Krita's \"Input FPS\"). "
-                              f"Equal to the recording's {self.info['fps']} fps = real speed, no re-encode.")
-        form.addRow("Captures per second:", self.speed)
+        self.speed.setToolTip(tr("How many captures play per second of video (Krita's \"Input FPS\"). "
+                                 "Equal to the recording's {fps} fps = real speed, no re-encode.").format(
+            fps=self.info["fps"]))
+        form.addRow(tr("Captures per second:"), self.speed)
         self.out_fps = QSpinBox(minimum=1, maximum=240)
         self.out_fps.setValue(settings.get("export_fps") or self.info["fps"])
-        form.addRow("Output FPS:", self.out_fps)
-        self.limit = QSpinBox(suffix=" s", maximum=36000, specialValueText="No limit")
+        form.addRow(tr("Output FPS:"), self.out_fps)
+        self.limit = QSpinBox(suffix=" s", maximum=36000, specialValueText=tr("No limit"))
         self.limit.setValue(settings.get("export_limit"))
-        self.limit.setToolTip("Speed the timelapse up so it fits in this many seconds.")
-        form.addRow("Limit length to:", self.limit)
+        self.limit.setToolTip(tr("Speed the timelapse up so it fits in this many seconds."))
+        form.addRow(tr("Limit length to:"), self.limit)
         lay.addLayout(form)
 
-        self.note = QLabel(f"With captures/s and output FPS at {self.info['fps']} and the extras at 0, sessions "
-                           "are joined without re-encoding (instant, lossless).")
+        self.note = QLabel(tr("With captures/s and output FPS at {fps} and the extras at 0, sessions "
+                              "are joined without re-encoding (instant, lossless).").format(fps=self.info["fps"]))
         self.note.setWordWrap(True)
         lay.addWidget(self.note)
         self.bar = QProgressBar()
@@ -173,7 +176,7 @@ class ExportDialog(QDialog):
         lay.addWidget(self.bar)
 
         self.buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
-        self.export_btn = self.buttons.addButton("Export", QDialogButtonBox.ButtonRole.AcceptRole)
+        self.export_btn = self.buttons.addButton(tr("Export"), QDialogButtonBox.ButtonRole.AcceptRole)
         self.buttons.accepted.connect(self._start)
         self.buttons.rejected.connect(self.reject)
         lay.addWidget(self.buttons)
@@ -192,8 +195,8 @@ class ExportDialog(QDialog):
         return os.path.join(where, f"{base}_timelapse.mp4")
 
     def _browse(self):
-        path, _ = QFileDialog.getSaveFileName(self, "Export timelapse", self.path.text(),
-                                              "Video (*.mp4 *.mkv *.mov)")
+        path, _ = QFileDialog.getSaveFileName(self, tr("Export timelapse"), self.path.text(),
+                                              tr("Video") + " (*.mp4 *.mkv *.mov)")
         if path:
             self.path.setText(path)
 
@@ -208,7 +211,7 @@ class ExportDialog(QDialog):
             RECORDER.close_segment()
         self.info = load_info(self.folder)
         if not segment_paths(self.folder, self.info):
-            QMessageBox.warning(self, "Recorder+ Export", "This recording has no video yet.")
+            QMessageBox.warning(self, "Recorder+", tr("This recording has no video yet."))
             return
         out = self.path.text().strip()
         if not os.path.splitext(out)[1]:
@@ -227,7 +230,7 @@ class ExportDialog(QDialog):
         if not self.steps:
             self.bar.setValue(1000)
             self.export_btn.setEnabled(True)
-            self.note.setText(f"Saved {self.out} ({human_size(os.path.getsize(self.out))}).")
+            self.note.setText(tr("Saved {path} ({size}).").format(path=self.out, size=human_size(os.path.getsize(self.out))))
             return
         cmd = self.steps.pop(0)
         self._stderr = b""
@@ -254,7 +257,7 @@ class ExportDialog(QDialog):
         if code != 0:
             self.export_btn.setEnabled(True)
             self.bar.hide()
-            QMessageBox.warning(self, "Recorder+ Export", "ffmpeg failed:\n\n"
+            QMessageBox.warning(self, "Recorder+", tr("ffmpeg failed:") + "\n\n"
                                 + self._stderr.decode("utf-8", "replace")[-1500:])
             return
         self._next()

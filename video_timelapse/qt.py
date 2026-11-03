@@ -1,7 +1,8 @@
 """PyQt6 (Krita 6) / PyQt5 (Krita 5) compatibility shim."""
 
 try:
-    from PyQt6.QtCore import (QEvent, QObject, QProcess, QTimer, Qt, QUrl,
+    from PyQt6.QtCore import (QEvent, QLocale, QObject, QProcess,
+                              QStandardPaths, QTimer, Qt, QUrl,
                               pyqtSignal)
     from PyQt6.QtGui import QColor, QDesktopServices, QImage, QPainter
     from PyQt6.QtWidgets import (QApplication, QCheckBox, QColorDialog,
@@ -14,7 +15,8 @@ try:
                                  QToolButton,
                                  QVBoxLayout, QWidget)
 except ImportError:
-    from PyQt5.QtCore import (QEvent, QObject, QProcess, QTimer, Qt, QUrl,
+    from PyQt5.QtCore import (QEvent, QLocale, QObject, QProcess,
+                              QStandardPaths, QTimer, Qt, QUrl,
                               pyqtSignal)
     from PyQt5.QtGui import QColor, QDesktopServices, QImage, QPainter
     from PyQt5.QtWidgets import (QApplication, QCheckBox, QColorDialog,
