@@ -18,11 +18,14 @@ _language = None          # None = English
 
 
 def _normalize(code):
-    code = code.split(".")[0].split("@")[0].replace("-", "_")
+    """"de_DE.UTF-8" -> "de_DE", "ca_ES@valencia" -> "ca_ES@valencia", "C" -> "en"."""
+    code = code.split(".")[0].replace("-", "_")
+    code, _, variant = code.partition("@")
     if code in ("C", "POSIX", ""):
         return "en"
     parts = code.split("_")
-    return parts[0].lower() + ("_" + parts[1].upper() if len(parts) > 1 else "")
+    code = parts[0].lower() + ("_" + parts[1].upper() if len(parts) > 1 else "")
+    return code + ("@" + variant.lower() if variant else "")
 
 
 def _requested_languages():
@@ -52,16 +55,24 @@ def _requested_languages():
 def _catalog_for(code):
     """Best catalog file for a language code, or None."""
     available = {f[:-5] for f in os.listdir(_DIR) if f.endswith(".json")} if os.path.isdir(_DIR) else set()
-    if code in available:
-        return code
-    base = code.split("_")[0]
+    available.discard("template")
+    region, _, variant = code.partition("@")
+    base = region.split("_")[0]
+    if base == "no":
+        base = region = "nb"   # legacy code for Norwegian Bokmål
+    candidates = [code]
+    if variant:
+        candidates += [f"{base}@{variant}"]      # ca_ES@valencia -> ca@valencia
+    candidates += [region]
     if base == "zh":
         # Traditional script for Taiwan/Hong Kong/Macau, simplified otherwise.
-        return "zh_TW" if code in ("zh_TW", "zh_HK", "zh_MO") and "zh_TW" in available else (
-            "zh_CN" if "zh_CN" in available else None)
-    if base in available:
-        return base
-    return next((a for a in sorted(available) if a.split("_")[0] == base), None)
+        candidates += ["zh_TW" if region in ("zh_TW", "zh_HK", "zh_MO") or variant == "hant" else "zh_CN"]
+    candidates += [base]
+    for c in candidates:
+        if c in available:
+            return c
+    # e.g. "pt_PT" with only pt_BR available: any catalog of the same language.
+    return next((a for a in sorted(available) if a.split("_")[0].split("@")[0] == base), None)
 
 
 def load():
