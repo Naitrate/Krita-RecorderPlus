@@ -6,12 +6,15 @@ from krita import DockWidget, Krita
 
 from . import encoders, settings
 from .export import ExportDialog, human_size
-from .qt import (QCheckBox, QColor, QColorDialog, QComboBox, QDesktopServices,
-                 QDoubleSpinBox, QFileDialog, QFormLayout, QGroupBox,
-                 QHBoxLayout, QLabel, QLineEdit, QMessageBox, QObject,
-                 QPushButton, QSpinBox, QTimer, QToolButton, QUrl,
+from .qt import (QCheckBox, QComboBox, QDesktopServices, QDoubleSpinBox,
+                 QFileDialog, QFormLayout, QFrame, QGroupBox, QHBoxLayout,
+                 QLabel, QLineEdit, QMessageBox, QObject, QPushButton,
+                 QScrollArea, QSpinBox, Qt, QTimer, QToolButton, QUrl,
                  QVBoxLayout, QWidget, pyqtSignal)
 from .recorder import RECORDER, load_info, segment_paths
+
+
+RES_NAMES = ["Full", "Half", "Quarter"]
 
 
 class _Detector(QObject):
@@ -122,16 +125,12 @@ class TimelapseDocker(DockWidget):
         form.addRow("Video FPS:", self.fps)
 
         self.resolution = QComboBox()
-        self.resolution.addItems(["Original", "Half", "Quarter"])
+        self.resolution.addItems(RES_NAMES)
         self.resolution.setCurrentIndex(settings.get("resolution"))
         self.resolution.currentIndexChanged.connect(lambda i: settings.put("resolution", i))
-        self.resolution.setToolTip("Fixed per recording once it has started.")
+        self.resolution.setToolTip("Fixed per recording once it has started. "
+                                   "Sizes shown are for the active document.")
         form.addRow("Resolution:", self.resolution)
-
-        self.bg = QPushButton()
-        self.bg.clicked.connect(self._pick_bg)
-        self._paint_bg()
-        form.addRow("Background:", self.bg)
 
         dir_row = QHBoxLayout()
         self.directory = QLineEdit(settings.get("directory"))
@@ -152,14 +151,21 @@ class TimelapseDocker(DockWidget):
         ff_row.addWidget(ff_btn)
         form.addRow("ffmpeg:", ff_row)
 
-        self.auto = QCheckBox("Start recording when Krita starts")
+        self.auto = QCheckBox("Record documents automatically when opened")
         self.auto.setChecked(settings.get("auto_record"))
         self.auto.toggled.connect(lambda v: settings.put("auto_record", v))
         form.addRow(self.auto)
 
         lay.addWidget(box)
         lay.addStretch(1)
-        self.setWidget(root)
+
+        # Scrollable so the docker can be shrunk to any size.
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setWidget(root)
+        self.setWidget(scroll)
 
         RECORDER.changed.connect(self._refresh)
         self._timer = QTimer(self)
@@ -184,6 +190,9 @@ class TimelapseDocker(DockWidget):
             self.rec.setChecked(RECORDER.enabled)
             self.rec.blockSignals(False)
         self.rec.setText("■ Stop" if RECORDER.enabled else "● Record")
+        doc = Krita.instance().activeDocument()
+        self.rec.setEnabled(doc is not None)
+        self._refresh_resolution_labels(doc)
 
         # encoder list
         want = [""] + RECORDER.detected
@@ -221,23 +230,46 @@ class TimelapseDocker(DockWidget):
         self.export_btn.setEnabled(has)
         self.discard_btn.setEnabled(has)
 
+    def _refresh_resolution_labels(self, doc):
+        info = None
+        if doc is not None:
+            info = load_info(RECORDER.folder_for(doc))
+        for i, name in enumerate(RES_NAMES):
+            if doc is None:
+                text = name
+            else:
+                w, h = RECORDER._target_size(doc.width(), doc.height(), i)
+                text = f"{name} ({w}x{h})"
+            if self.resolution.itemText(i) != text:
+                self.resolution.setItemText(i, text)
+        locked = bool(info and info.get("segments"))
+        self.resolution.setEnabled(not locked)
+        self.fps.setEnabled(not locked)
+        if locked:
+            res = RES_NAMES[max(0, min(2, info.get("resolution", settings.get("resolution"))))]
+            tip = (f"This document's recording uses {res} resolution @ {info['fps']} fps. "
+                   "Discard it to change resolution or FPS.")
+            self.resolution.setToolTip(tip)
+            self.fps.setToolTip(tip)
+            if self.resolution.currentIndex() != RES_NAMES.index(res):
+                self.resolution.blockSignals(True)
+                self.resolution.setCurrentIndex(RES_NAMES.index(res))
+                self.resolution.blockSignals(False)
+        else:
+            self.resolution.setToolTip("Fixed per recording once it has started. "
+                                       "Sizes shown are for the active document.")
+            self.fps.setToolTip("Video frame rate. Fixed per recording once it has started.")
+            if self.resolution.currentIndex() != settings.get("resolution"):
+                self.resolution.blockSignals(True)
+                self.resolution.setCurrentIndex(settings.get("resolution"))
+                self.resolution.blockSignals(False)
+
     def _encoder_changed(self):
         settings.put("encoder", self.encoder.currentData() or "")
 
     def _interval_changed(self, v):
         settings.put("interval", v)
         RECORDER.restart_timer()
-
-    def _paint_bg(self):
-        c = settings.get("background")
-        self.bg.setText(c)
-        self.bg.setStyleSheet(f"background:{c}; color:{'#000' if QColor(c).lightness() > 128 else '#fff'}")
-
-    def _pick_bg(self):
-        c = QColorDialog.getColor(QColor(settings.get("background")), self, "Background behind transparency")
-        if c.isValid():
-            settings.put("background", c.name())
-            self._paint_bg()
 
     def _pick_dir(self):
         d = QFileDialog.getExistingDirectory(self, "Timelapse folder", self.directory.text())

@@ -1,8 +1,7 @@
 from krita import DockWidgetFactory, DockWidgetFactoryBase, Extension, Krita
 
-from . import settings
 from .docker import TimelapseDocker, detect_encoders
-from .qt import QApplication, QTimer
+from .qt import QApplication
 from .recorder import RECORDER
 
 TOGGLE_ID = "video_timelapse_toggle"
@@ -21,8 +20,7 @@ class VideoTimelapseExtension(Extension):
         QApplication.instance().aboutToQuit.connect(RECORDER.shutdown)
         RECORDER.changed.connect(self._sync_actions)
         detect_encoders()
-        if settings.get("auto_record"):
-            QTimer.singleShot(3000, lambda: RECORDER.set_enabled(True))
+        RECORDER.start()
 
     def createActions(self, window):
         action = window.createAction(TOGGLE_ID, "Toggle Video Timelapse Recording", "tools")

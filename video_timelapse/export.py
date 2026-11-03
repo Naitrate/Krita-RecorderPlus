@@ -44,7 +44,12 @@ def plan(folder, info, out_path, preview, hold, limit, speed, out_fps):
     with open(list_file, "w", encoding="utf-8") as f:
         f.writelines(_concat_line(p) for p in segs)
 
-    codecs = {s.get("codec") for s in info["segments"]}
+    entries = [s for s in info["segments"] if os.path.isfile(os.path.join(folder, s["file"]))]
+    codecs = {s.get("codec") for s in entries}
+    sizes = [(s.get("width", info["width"]), s.get("height", info["height"])) for s in entries]
+    # Like Krita's recorder export: the video takes the size of the final frame.
+    w, h = sizes[-1]
+    mixed = len(codecs) > 1 or len(set(sizes)) > 1
     rec_fps = info["fps"]
     duration = sum(_probe_duration(p) for p in segs)   # at recording fps
     factor = rec_fps / speed                            # pts multiplier
@@ -54,7 +59,7 @@ def plan(folder, info, out_path, preview, hold, limit, speed, out_fps):
         played = limit
     retime = abs(factor - 1) > 1e-6 or out_fps != rec_fps
     mp4 = os.path.splitext(out_path)[1].lower() in (".mp4", ".mov", ".m4v")
-    reencode = preview > 0 or hold > 0 or retime or len(codecs) > 1
+    reencode = preview > 0 or hold > 0 or retime or mixed
 
     if not reencode:
         codec = next(iter(codecs), "")
@@ -71,17 +76,19 @@ def plan(folder, info, out_path, preview, hold, limit, speed, out_fps):
                       "-update", "1", last_png])
 
     enc = RECORDER.chosen_encoder()
-    w, h = info["width"], info["height"]
-    if len(codecs) > 1:
-        # The concat demuxer can't switch codecs mid-stream (sessions recorded
-        # with different encoders), so decode each segment and join in-graph.
+    if mixed:
+        # Segments differ in size (canvas cropped/resized) or codec, which the
+        # concat demuxer can't handle: decode each one, fit it into the final
+        # size with black bars as Krita's export does, and join in-graph.
+        fit = (f"scale={w}:{h}:force_original_aspect_ratio=decrease:force_divisible_by=2,"
+               f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2")
         inputs = [a for p in segs for a in ("-i", p)]
-        joined = "".join(f"[{i}:v]setsar=1,format=yuv420p[s{i}];" for i in range(len(segs)))
+        joined = "".join(f"[{i}:v]{fit},setsar=1,format=yuv420p[s{i}];" for i in range(len(segs)))
         main = joined + "".join(f"[s{i}]" for i in range(len(segs))) + f"concat=n={len(segs)}:v=1:a=0"
     else:
         inputs = ["-f", "concat", "-safe", "0", "-i", list_file]
         main = "[0:v]setsar=1"
-    still = len(segs) if len(codecs) > 1 else 1
+    still = len(segs) if mixed else 1
     if retime:
         main += f",setpts=PTS*{factor:.8f},fps={out_fps}"
     if hold > 0:

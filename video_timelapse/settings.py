@@ -11,7 +11,6 @@ DEFAULTS = {
     "interval": 1.0,          # seconds between captures
     "fps": 30,
     "resolution": 0,          # 0 = original, 1 = half, 2 = quarter
-    "background": "#ffffff",
     "directory": os.path.join(os.path.expanduser("~"), "Videos", "Krita Timelapses"),
     "auto_record": False,
     "ffmpeg": "",

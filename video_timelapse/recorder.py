@@ -66,12 +66,17 @@ class Segment:
         self.folder = folder
         self.info = info
         self.encoder = encoder
-        self.file = time.strftime("seg_%Y%m%d_%H%M%S.mkv")
+        stamp = time.strftime("seg_%Y%m%d_%H%M%S")
+        self.file, n = stamp + ".mkv", 1
+        while os.path.exists(os.path.join(folder, self.file)):
+            n += 1
+            self.file = f"{stamp}_{n}.mkv"
         self.path = os.path.join(folder, self.file)
         self.frames = 0
         self.dropped = 0
         self.error = ""
         w, h, fps = info["width"], info["height"], info["fps"]
+        self.size = (w, h)
         cmd = [settings.ffmpeg_path(), "-hide_banner", "-loglevel", "warning", "-y",
                *encoders.input_args(encoder),
                "-f", "rawvideo", "-pix_fmt", "bgr0", "-video_size", f"{w}x{h}",
@@ -88,7 +93,8 @@ class Segment:
         self._thread = threading.Thread(target=self._pump, daemon=True)
         self._thread.start()
         info["segments"].append({"file": self.file, "encoder": encoder,
-                                 "codec": encoders.codec_of(encoder), "frames": 0})
+                                 "codec": encoders.codec_of(encoder), "frames": 0,
+                                 "width": w, "height": h})
         save_info(folder, info)
 
     def _pump(self):
@@ -153,13 +159,16 @@ class Recorder(QObject):
 
     def __init__(self):
         super().__init__()
-        self.enabled = False
         self.status = "Idle"
         self.segment = None
         self.key = None
         self.folder = None
         self.last_image = None
         self.detected = []          # working encoders, filled by detection
+        # Like Krita's recorder, recording is switched on per document (keyed
+        # the same way as the recording folder) rather than globally.
+        self._enabled_keys = set()
+        self._seen_keys = set()      # documents already offered auto-record
         self._digests = {}           # key -> digest of last written frame
         self._failed = set()         # encoders that died this session
         self._timer = QTimer(self)
@@ -167,26 +176,41 @@ class Recorder(QObject):
 
     # ---- control -------------------------------------------------------
 
+    def start(self):
+        """Begin watching documents (the timer idles cheaply when the active
+        document isn't being recorded)."""
+        self.restart_timer()
+
+    def restart_timer(self):
+        self._timer.start(int(max(0.1, settings.get("interval")) * 1000))
+
+    @property
+    def enabled(self):
+        """Whether the active document is being recorded."""
+        doc = Krita.instance().activeDocument()
+        return doc is not None and document_key(doc) in self._enabled_keys
+
     def set_enabled(self, on):
-        if on == self.enabled:
+        doc = Krita.instance().activeDocument()
+        if doc is None:
+            return
+        key = document_key(doc)
+        self._seen_keys.add(key)
+        if on == (key in self._enabled_keys):
             return
         if on and not settings.ffmpeg_path():
             self.status = "ffmpeg not found — set its path in the docker"
             self.changed.emit()
             return
-        self.enabled = on
         if on:
-            self._timer.start(int(max(0.1, settings.get("interval")) * 1000))
+            self._enabled_keys.add(key)
             self.status = "Recording"
         else:
-            self._timer.stop()
-            self.close_segment()
-            self.status = "Idle"
+            self._enabled_keys.discard(key)
+            if self.key == key:
+                self.close_segment()
+            self.status = "Not recording this document"
         self.changed.emit()
-
-    def restart_timer(self):
-        if self.enabled:
-            self._timer.start(int(max(0.1, settings.get("interval")) * 1000))
 
     def chosen_encoder(self):
         usable = [e for e in self.detected if e not in self._failed]
@@ -211,7 +235,9 @@ class Recorder(QObject):
         self.last_image = None
 
     def _fail(self, message):
-        self.set_enabled(False)
+        if self.key is not None:
+            self._enabled_keys.discard(self.key)
+        self.close_segment()
         self.status = message
         self.changed.emit()
 
@@ -224,8 +250,10 @@ class Recorder(QObject):
     def folder_for(self, doc):
         return os.path.join(settings.get("directory"), document_key(doc))
 
-    def _target_size(self, w, h):
-        div = 1 << max(0, min(2, settings.get("resolution")))
+    def _target_size(self, w, h, resolution=None):
+        if resolution is None:
+            resolution = settings.get("resolution")
+        div = 1 << max(0, min(2, resolution))
         w, h = max(2, w // div), max(2, h // div)
         cap = encoders.max_dim(self.chosen_encoder())
         if max(w, h) > cap:
@@ -239,12 +267,14 @@ class Recorder(QObject):
         if doc is None:
             self.close_segment()
             return
-        # Like Krita's recorder: only capture while the main window is focused,
-        # so modal dialogs (filters, etc.) aren't disturbed.
-        if not isinstance(QApplication.activeWindow(), QMainWindow):
-            return
 
         key = document_key(doc)
+        if key not in self._seen_keys:
+            # First time this document is active this session (i.e. it was just
+            # opened or created): start recording it if "record automatically".
+            self._seen_keys.add(key)
+            if settings.get("auto_record") and settings.ffmpeg_path():
+                self._enabled_keys.add(key)
         if key != self.key:
             self.close_segment()
             self.key = key
@@ -253,6 +283,16 @@ class Recorder(QObject):
             info = load_info(self.folder)
             if info and key not in self._digests:
                 self._digests[key] = info.get("last_digest", "")
+            self.status = "Recording" if key in self._enabled_keys else "Not recording this document"
+            self.changed.emit()
+
+        if key not in self._enabled_keys:
+            self.close_segment()
+            return
+        # Like Krita's recorder: only capture while the main window is focused,
+        # so modal dialogs (filters, etc.) aren't disturbed.
+        if not isinstance(QApplication.activeWindow(), QMainWindow):
+            return
 
         w, h = doc.width(), doc.height()
         if w * h * 4 >= 2 ** 31:
@@ -261,21 +301,33 @@ class Recorder(QObject):
             return
 
         info = self.segment.info if self.segment else load_info(self.folder)
-        tw, th = (info["width"], info["height"]) if info else self._target_size(w, h)
+        # Like Krita's recorder, frames follow the canvas size, so a crop or
+        # resize changes the frame size. Each size gets its own segment;
+        # export fits them all to the final size.
+        resolution = info.get("resolution", settings.get("resolution")) if info else settings.get("resolution")
+        tw, th = self._target_size(w, h, resolution)
+        if self.segment is not None and self.segment.size != (tw, th):
+            self.close_segment()
+            info = load_info(self.folder)
 
         frame = QImage(tw, th, QImage.Format.Format_RGB32)
-        frame.fill(QColor(settings.get("background")))
-        src = doc.projection(0, 0, w, h)
+        # Same as Krita's recorder (removeFrameTransparency): transparent and
+        # semi-transparent pixels are blended source-over onto plain white.
+        frame.fill(QColor(255, 255, 255))
         p = QPainter(frame)
-        if (w, h) == (tw, th):
-            p.drawImage(0, 0, src)
+        div = 1 << max(0, min(2, resolution))
+        cw, ch = tw * div, th * div
+        if cw <= w and ch <= h:
+            # Like Krita: truncate odd edges instead of resampling, then
+            # downscale by an exact factor.
+            src = doc.projection(0, 0, cw, ch)
         else:
-            # Downscale / letterbox (canvas may have been resized since the
-            # recording started; output size is fixed per recording).
-            p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-            scaled = src.scaled(tw, th, Qt.AspectRatioMode.KeepAspectRatio,
-                                Qt.TransformationMode.SmoothTransformation)
-            p.drawImage((tw - scaled.width()) // 2, (th - scaled.height()) // 2, scaled)
+            # Only when capped to the encoder's maximum dimension.
+            src = doc.projection(0, 0, w, h)
+        if src.size().width() != tw or src.size().height() != th:
+            src = src.scaled(tw, th, Qt.AspectRatioMode.IgnoreAspectRatio,
+                             Qt.TransformationMode.SmoothTransformation)
+        p.drawImage(0, 0, src)
         p.end()
 
         data = image_bytes(frame)
@@ -298,8 +350,9 @@ class Recorder(QObject):
             os.makedirs(self.folder, exist_ok=True)
             if info is None:
                 info = {"name": doc.name() or os.path.basename(doc.fileName()) or "Untitled",
-                        "width": tw, "height": th, "fps": settings.get("fps"),
+                        "fps": settings.get("fps"), "resolution": resolution,
                         "segments": []}
+            info["width"], info["height"] = tw, th   # latest size
             info["name"] = doc.name() or info.get("name", "")
             info["document"] = doc.fileName()
             try:

@@ -5,9 +5,17 @@ thousands of JPEG/PNG frames like the built-in Recorder does. Frames are piped
 raw into ffmpeg and hardware-encoded, so the disk only ever holds compressed
 video (typically a few KB per captured frame instead of hundreds).
 
-Capture behaviour mirrors Krita's built-in Recorder: a capture every N seconds,
-only when the canvas actually changed, skipped while a dialog has focus, and one
-recording per document (keyed by creation date, so renames/Save As keep going).
+Capture behaviour mirrors Krita's built-in Recorder:
+- a capture every N seconds, only when the canvas actually changed, skipped
+  while a dialog has focus;
+- recording is on/off **per document**; with "record automatically" each
+  document starts recording when it is opened or created;
+- one recording per document, identified by the document's creation date
+  (stored in the .kra), so renames and Save As keep adding to it;
+- transparency is blended onto white, odd edges are truncated to even sizes;
+- frames follow the canvas size: after a crop/resize a new segment starts at
+  the new size, and export fits everything into the **final** size with black
+  bars, exactly like the built-in export.
 
 ## Settings
 
@@ -34,7 +42,7 @@ next one takes over. You can also pick one manually in the docker.
 
 `<folder>/<document id>/`
 - `seg_*.mkv` — one segment per record session (MKV survives crashes)
-- `info.json` — size/fps (fixed per recording), segment list
+- `info.json` — fps and resolution (fixed per recording), segments with their sizes
 - `last.png` — final frame, used for the "show result at start" option
 - `ffmpeg.log`
 

@@ -7,9 +7,10 @@ try:
     from PyQt6.QtWidgets import (QApplication, QCheckBox, QColorDialog,
                                  QComboBox, QDialog, QDialogButtonBox,
                                  QDoubleSpinBox, QFileDialog, QFormLayout,
-                                 QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                                 QFrame, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
                                  QMainWindow, QMessageBox, QProgressBar,
-                                 QPushButton, QSpinBox, QToolButton,
+                                 QPushButton, QScrollArea, QSpinBox,
+                                 QToolButton,
                                  QVBoxLayout, QWidget)
 except ImportError:
     from PyQt5.QtCore import (QObject, QProcess, QTimer, Qt, QUrl,
@@ -18,9 +19,10 @@ except ImportError:
     from PyQt5.QtWidgets import (QApplication, QCheckBox, QColorDialog,
                                  QComboBox, QDialog, QDialogButtonBox,
                                  QDoubleSpinBox, QFileDialog, QFormLayout,
-                                 QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                                 QFrame, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
                                  QMainWindow, QMessageBox, QProgressBar,
-                                 QPushButton, QSpinBox, QToolButton,
+                                 QPushButton, QScrollArea, QSpinBox,
+                                 QToolButton,
                                  QVBoxLayout, QWidget)
 
 
