@@ -9,6 +9,14 @@ Capture behaviour mirrors Krita's built-in Recorder: a capture every N seconds,
 only when the canvas actually changed, skipped while a dialog has focus, and one
 recording per document (keyed by creation date, so renames/Save As keep going).
 
+## Settings
+
+Anything not changed in this docker defaults to the built-in Recorder's
+settings from `kritarc`: capture interval, resolution, record automatically,
+export FPS, input FPS ("Captures per second" here), result preview / extend
+result seconds, and the video directory. Recordings go to
+`<Recorder snapshot directory>/Video Timelapse/`.
+
 ## Encoder selection
 
 Every candidate is test-encoded at startup (ffmpeg lists encoders even when the

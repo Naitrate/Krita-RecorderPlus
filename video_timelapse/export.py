@@ -33,8 +33,11 @@ def human_size(n):
         n /= 1024
 
 
-def plan(folder, info, out_path, preview, hold, limit):
-    """Return (list of ffmpeg argument lists, expected output seconds)."""
+def plan(folder, info, out_path, preview, hold, limit, speed, out_fps):
+    """Return (list of ffmpeg argument lists, expected output seconds).
+
+    speed   -- captures shown per second of video (Krita's "input FPS")
+    out_fps -- frame rate of the exported file"""
     ff = settings.ffmpeg_path()
     segs = segment_paths(folder, info)
     list_file = os.path.join(folder, "concat.txt")
@@ -42,17 +45,23 @@ def plan(folder, info, out_path, preview, hold, limit):
         f.writelines(_concat_line(p) for p in segs)
 
     codecs = {s.get("codec") for s in info["segments"]}
-    fps = info["fps"]
-    duration = sum(_probe_duration(p) for p in segs)
+    rec_fps = info["fps"]
+    duration = sum(_probe_duration(p) for p in segs)   # at recording fps
+    factor = rec_fps / speed                            # pts multiplier
+    played = duration * factor
+    if limit > 0 and played > limit:
+        factor *= limit / played
+        played = limit
+    retime = abs(factor - 1) > 1e-6 or out_fps != rec_fps
     mp4 = os.path.splitext(out_path)[1].lower() in (".mp4", ".mov", ".m4v")
-    reencode = preview > 0 or hold > 0 or (limit > 0 and duration > limit) or len(codecs) > 1
+    reencode = preview > 0 or hold > 0 or retime or len(codecs) > 1
 
     if not reencode:
         codec = next(iter(codecs), "")
         cmd = [ff, "-hide_banner", "-y", "-f", "concat", "-safe", "0", "-i", list_file, "-c", "copy"]
         if mp4:
             cmd += (["-tag:v", "hvc1"] if codec == "hevc" else []) + ["-movflags", "+faststart"]
-        return [cmd + [out_path]], duration
+        return [cmd + [out_path]], played
 
     steps = []
     last_png = os.path.join(folder, "last.png")
@@ -73,17 +82,15 @@ def plan(folder, info, out_path, preview, hold, limit):
         inputs = ["-f", "concat", "-safe", "0", "-i", list_file]
         main = "[0:v]setsar=1"
     still = len(segs) if len(codecs) > 1 else 1
-    body = duration
-    if limit > 0 and duration > limit:
-        main += f",setpts=PTS*{limit / duration:.8f},fps={fps}"
-        body = limit
+    if retime:
+        main += f",setpts=PTS*{factor:.8f},fps={out_fps}"
     if hold > 0:
         main += f",tpad=stop_mode=clone:stop_duration={hold}"
     main += ",format=yuv420p"
     tail = ",".join(encoders.filter_tail(enc))
 
     if preview > 0:
-        inputs += ["-loop", "1", "-framerate", str(fps), "-t", str(preview), "-i", last_png]
+        inputs += ["-loop", "1", "-framerate", str(out_fps), "-t", str(preview), "-i", last_png]
         graph = (f"[{still}:v]scale={w}:{h}:force_original_aspect_ratio=decrease,"
                  f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,"
                  f"scale=out_color_matrix=bt709:out_range=tv,format=yuv420p,setsar=1[p];"
@@ -93,11 +100,11 @@ def plan(folder, info, out_path, preview, hold, limit):
 
     cmd = [ff, "-hide_banner", "-y", *encoders.input_args(enc), *inputs,
            "-filter_complex", graph, "-map", "[out]",
-           *encoders.codec_args(enc, settings.get("quality"), fps), *encoders.COLOR_TAGS]
+           *encoders.codec_args(enc, settings.get("quality"), out_fps), *encoders.COLOR_TAGS]
     if mp4:
         cmd += (["-tag:v", "hvc1"] if encoders.codec_of(enc) == "hevc" else []) + ["-movflags", "+faststart"]
     steps.append(cmd + [out_path])
-    return steps, body + preview + hold
+    return steps, played + preview + hold
 
 
 class ExportDialog(QDialog):
@@ -132,13 +139,22 @@ class ExportDialog(QDialog):
         self.hold = QDoubleSpinBox(suffix=" s", maximum=60, singleStep=0.5)
         self.hold.setValue(settings.get("export_hold"))
         form.addRow("Hold last frame:", self.hold)
+        self.speed = QSpinBox(minimum=1, maximum=10000)
+        self.speed.setValue(settings.get("export_speed") or self.info["fps"])
+        self.speed.setToolTip("How many captures play per second of video (Krita's \"Input FPS\"). "
+                              f"Equal to the recording's {self.info['fps']} fps = real speed, no re-encode.")
+        form.addRow("Captures per second:", self.speed)
+        self.out_fps = QSpinBox(minimum=1, maximum=240)
+        self.out_fps.setValue(settings.get("export_fps") or self.info["fps"])
+        form.addRow("Output FPS:", self.out_fps)
         self.limit = QSpinBox(suffix=" s", maximum=36000, specialValueText="No limit")
         self.limit.setValue(settings.get("export_limit"))
         self.limit.setToolTip("Speed the timelapse up so it fits in this many seconds.")
         form.addRow("Limit length to:", self.limit)
         lay.addLayout(form)
 
-        self.note = QLabel("With all extras at 0 the sessions are joined without re-encoding (instant, lossless).")
+        self.note = QLabel(f"With captures/s and output FPS at {self.info['fps']} and the extras at 0, sessions "
+                           "are joined without re-encoding (instant, lossless).")
         self.note.setWordWrap(True)
         lay.addWidget(self.note)
         self.bar = QProgressBar()
@@ -159,7 +175,9 @@ class ExportDialog(QDialog):
     def _default_output(self):
         doc = self.info.get("document") or ""
         base = os.path.splitext(os.path.basename(doc))[0] if doc else self.info.get("name") or "timelapse"
-        where = os.path.dirname(doc) if doc and os.path.isdir(os.path.dirname(doc)) else self.folder
+        where = settings.get("export_dir")
+        if not os.path.isdir(where):
+            where = os.path.dirname(doc) if doc and os.path.isdir(os.path.dirname(doc)) else self.folder
         return os.path.join(where, f"{base}_timelapse.mp4")
 
     def _browse(self):
@@ -172,6 +190,8 @@ class ExportDialog(QDialog):
         settings.put("export_preview", self.preview.value())
         settings.put("export_hold", self.hold.value())
         settings.put("export_limit", self.limit.value())
+        settings.put("export_speed", self.speed.value())
+        settings.put("export_fps", self.out_fps.value())
         if RECORDER.segment is not None and RECORDER.folder == self.folder:
             # Finalise the open session so it's included.
             RECORDER.close_segment()
@@ -184,7 +204,8 @@ class ExportDialog(QDialog):
             out += ".mp4"
         self.out = out
         self.steps, self.expected = plan(self.folder, self.info, out, self.preview.value(),
-                                         self.hold.value(), self.limit.value())
+                                         self.hold.value(), self.limit.value(),
+                                         self.speed.value(), self.out_fps.value())
         self.export_btn.setEnabled(False)
         self.bar.setRange(0, 1000)
         self.bar.setValue(0)
