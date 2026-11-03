@@ -10,7 +10,7 @@ DEFAULTS = {
     "quality": "medium",
     "fps": 30,
     "resolution": 0,          # 0 = original, 1 = half, 2 = quarter
-    "directory": os.path.join(os.path.expanduser("~"), "Videos", "Krita Timelapses"),
+    "directory": os.path.join(os.path.expanduser("~"), "Videos", "Krita Recordings"),
     "auto_record": False,
     "ffmpeg": "",
     "vaapi_device": "/dev/dri/renderD128",
