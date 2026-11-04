@@ -84,4 +84,4 @@ Settings → Dockers → Recorder+. A shortcut can be bound to
 
 ## NOTE:
 
-This has only been tested with Krita 6.3 on NixOS. Your results may vary.
+This has only been tested with Krita 6.0.4 on NixOS. Your results may vary, as I haven't tested this on MacOS or Windows.
