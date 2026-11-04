@@ -81,3 +81,7 @@ Symlink or copy `RecorderPlus/` and `RecorderPlus.desktop` into
 Settings → Configure Krita → Python Plugin Manager, restart, then
 Settings → Dockers → Recorder+. A shortcut can be bound to
 "Toggle Recorder+ Recording". Requires ffmpeg (on PATH or set in the docker).
+
+## NOTE:
+
+This has only been tested with Krita 6.3 on NixOS. Your results may vary.
