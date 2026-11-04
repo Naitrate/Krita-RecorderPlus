@@ -66,7 +66,7 @@ def _on_detected(found):
 DETECTOR.done.connect(_on_detected)
 
 
-class TimelapseDocker(DockWidget):
+class RecorderPlusDocker(DockWidget):
 
     def __init__(self):
         super().__init__()

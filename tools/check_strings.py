@@ -10,7 +10,7 @@ import json
 import pathlib
 import sys
 
-PKG = pathlib.Path(__file__).resolve().parent.parent / "video_timelapse"
+PKG = pathlib.Path(__file__).resolve().parent.parent / "RecorderPlus"
 LOCALE = PKG / "locale"
 # Strings passed to tr() through a variable rather than a literal.
 EXTRA = ["Full", "Half", "Quarter", "High", "Balanced", "Small file"]

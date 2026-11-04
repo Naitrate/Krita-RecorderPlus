@@ -69,14 +69,14 @@ current encoder.
 
 The UI follows Krita's language (Settings → Switch Application Language, else
 the system language) and ships translations for all 74 languages Krita does.
-Catalogs are `video_timelapse/locale/<code>.json`, keyed by the English text;
+Catalogs are `RecorderPlus/locale/<code>.json`, keyed by the English text;
 `python3 tools/check_strings.py` regenerates `template.json` and reports
 missing strings or placeholder mismatches per language. Many translations were
 machine-written and would benefit from native-speaker review.
 
 ## Install
 
-Symlink or copy `video_timelapse/` and `video_timelapse.desktop` into
+Symlink or copy `RecorderPlus/` and `RecorderPlus.desktop` into
 `~/.local/share/krita/pykrita/`, enable *Recorder+* in
 Settings → Configure Krita → Python Plugin Manager, restart, then
 Settings → Dockers → Recorder+. A shortcut can be bound to

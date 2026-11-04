@@ -3,7 +3,7 @@ import shutil
 
 from krita import Krita
 
-GROUP = "VideoTimelapse"
+GROUP = "RecorderPlus"
 
 DEFAULTS = {
     "encoder": "",            # empty = best detected

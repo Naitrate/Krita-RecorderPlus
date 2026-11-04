@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Service
 ServiceTypes=Krita/PythonPlugin
-X-KDE-Library=video_timelapse
+X-KDE-Library=RecorderPlus
 X-Python-2-Compatible=false
 Name=Recorder+
 Comment=Krita Recorder that records straight into a (GPU-encoded) video file instead of individual frames

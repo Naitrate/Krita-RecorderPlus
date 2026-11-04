@@ -1,14 +1,14 @@
 from krita import DockWidgetFactory, DockWidgetFactoryBase, Extension, Krita
 
 from .i18n import tr
-from .docker import TimelapseDocker, detect_encoders
+from .docker import RecorderPlusDocker, detect_encoders
 from .qt import QApplication
 from .recorder import RECORDER
 
-TOGGLE_ID = "video_timelapse_toggle"
+TOGGLE_ID = "recorderplus_toggle"
 
 
-class VideoTimelapseExtension(Extension):
+class RecorderPlusExtension(Extension):
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -45,6 +45,6 @@ class VideoTimelapseExtension(Extension):
         self._actions = alive
 
 
-Krita.instance().addExtension(VideoTimelapseExtension(Krita.instance()))
+Krita.instance().addExtension(RecorderPlusExtension(Krita.instance()))
 Krita.instance().addDockWidgetFactory(
-    DockWidgetFactory("video_timelapse", DockWidgetFactoryBase.DockPosition.DockRight, TimelapseDocker))
+    DockWidgetFactory("recorderplus", DockWidgetFactoryBase.DockPosition.DockRight, RecorderPlusDocker))
