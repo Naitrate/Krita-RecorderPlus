@@ -89,5 +89,6 @@
  "High": "Mikil",
  "Balanced": "Jöfn",
  "Small file": "Lítil skrá",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tímabundið: eytt þegar skjalinu er lokað nema það sé vistað sem .kra eða .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tímabundið: eytt þegar skjalinu er lokað nema það sé vistað sem .kra eða .psd.",
+ "Could not process recording frame: {error}": "Gat ekki unnið úr ramma upptökunnar: {error}"
 }

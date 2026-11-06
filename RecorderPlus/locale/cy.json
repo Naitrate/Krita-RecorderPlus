@@ -89,5 +89,6 @@
  "High": "Uchel",
  "Balanced": "Cytbwys",
  "Small file": "Ffeil fach",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Dros dro: caiff ei ddileu pan fydd y ddogfen yn cau oni bai ei bod wedi'i chadw fel .kra neu .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Dros dro: caiff ei ddileu pan fydd y ddogfen yn cau oni bai ei bod wedi'i chadw fel .kra neu .psd.",
+ "Could not process recording frame: {error}": "Methu prosesu ffrâm y recordiad: {error}"
 }

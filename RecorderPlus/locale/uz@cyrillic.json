@@ -89,5 +89,6 @@
  "High": "Юқори",
  "Balanced": "Мувозанатли",
  "Small file": "Кичик файл",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Вақтинчалик: ҳужжат .kra ёки .psd сифатида сақланмаса, ёпилганда ўчирилади."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Вақтинчалик: ҳужжат .kra ёки .psd сифатида сақланмаса, ёпилганда ўчирилади.",
+ "Could not process recording frame: {error}": "Ёзув кадрини қайта ишлаб бўлмади: {error}"
 }

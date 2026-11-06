@@ -89,5 +89,6 @@
  "High": "Wysoka",
  "Balanced": "Zrównoważona",
  "Small file": "Mały plik",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tymczasowe: zostanie usunięte po zamknięciu dokumentu, chyba że zapiszesz go jako .kra lub .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tymczasowe: zostanie usunięte po zamknięciu dokumentu, chyba że zapiszesz go jako .kra lub .psd.",
+ "Could not process recording frame: {error}": "Nie można przetworzyć klatki nagrania: {error}"
 }

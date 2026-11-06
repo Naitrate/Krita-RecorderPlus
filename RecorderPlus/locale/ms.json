@@ -89,5 +89,6 @@
  "High": "Tinggi",
  "Balanced": "Seimbang",
  "Small file": "Fail kecil",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Sementara: dipadam apabila dokumen ditutup melainkan disimpan sebagai .kra atau .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Sementara: dipadam apabila dokumen ditutup melainkan disimpan sebagai .kra atau .psd.",
+ "Could not process recording frame: {error}": "Tidak dapat memproses bingkai rakaman: {error}"
 }

@@ -89,5 +89,6 @@
  "High": "उच्च",
  "Balanced": "संतुलित",
  "Small file": "लहान फाइल",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "तात्पुरते: दस्तऐवज .kra किंवा .psd म्हणून जतन न केल्यास तो बंद करताच काढून टाकले जाईल."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "तात्पुरते: दस्तऐवज .kra किंवा .psd म्हणून जतन न केल्यास तो बंद करताच काढून टाकले जाईल.",
+ "Could not process recording frame: {error}": "रेकॉर्डिंग फ्रेमवर प्रक्रिया करता आली नाही: {error}"
 }

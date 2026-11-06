@@ -89,5 +89,6 @@
  "High": "Hög",
  "Balanced": "Balanserad",
  "Small file": "Liten fil",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tillfällig: tas bort när dokumentet stängs om det inte sparas som .kra eller .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tillfällig: tas bort när dokumentet stängs om det inte sparas som .kra eller .psd.",
+ "Could not process recording frame: {error}": "Kunde inte bearbeta inspelningens bildruta: {error}"
 }

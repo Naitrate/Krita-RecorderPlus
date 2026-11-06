@@ -89,5 +89,6 @@
  "High": "Vysoká",
  "Balanced": "Vyvážená",
  "Small file": "Malý soubor",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Dočasné: smaže se při zavření dokumentu, pokud není uložen jako .kra nebo .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Dočasné: smaže se při zavření dokumentu, pokud není uložen jako .kra nebo .psd.",
+ "Could not process recording frame: {error}": "Nelze zpracovat snímek záznamu: {error}"
 }

@@ -89,5 +89,6 @@
  "High": "عالية",
  "Balanced": "متوازنة",
  "Small file": "ملف صغير",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "مؤقت: يُحذف عند إغلاق المستند ما لم يُحفظ بصيغة .kra أو .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "مؤقت: يُحذف عند إغلاق المستند ما لم يُحفظ بصيغة .kra أو .psd.",
+ "Could not process recording frame: {error}": "تعذّرت معالجة إطار التسجيل: {error}"
 }

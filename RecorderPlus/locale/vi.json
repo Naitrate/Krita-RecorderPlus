@@ -89,5 +89,6 @@
  "High": "Cao",
  "Balanced": "Cân bằng",
  "Small file": "Tệp nhỏ",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tạm thời: sẽ bị xoá khi đóng tài liệu nếu không được lưu dưới dạng .kra hoặc .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tạm thời: sẽ bị xoá khi đóng tài liệu nếu không được lưu dưới dạng .kra hoặc .psd.",
+ "Could not process recording frame: {error}": "Không thể xử lý khung hình của bản ghi: {error}"
 }

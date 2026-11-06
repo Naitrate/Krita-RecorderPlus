@@ -89,5 +89,6 @@
  "High": "Ephezulu",
  "Balanced": "Elungeleleneyo",
  "Small file": "Ifayile encinci",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Okwethutyana: kuyacinywa xa uxwebhu luvalwa ngaphandle kokuba lugcinwe njenge-.kra okanye .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Okwethutyana: kuyacinywa xa uxwebhu luvalwa ngaphandle kokuba lugcinwe njenge-.kra okanye .psd.",
+ "Could not process recording frame: {error}": "Ayikwazanga ukuqhuba isakhelo serekhodi: {error}"
 }

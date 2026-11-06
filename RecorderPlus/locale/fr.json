@@ -89,5 +89,6 @@
  "High": "Haute",
  "Balanced": "Équilibrée",
  "Small file": "Fichier léger",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Temporaire : supprimé à la fermeture du document s'il n'est pas enregistré en .kra ou .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Temporaire : supprimé à la fermeture du document s'il n'est pas enregistré en .kra ou .psd.",
+ "Could not process recording frame: {error}": "Impossible de traiter l'image de l'enregistrement : {error}"
 }

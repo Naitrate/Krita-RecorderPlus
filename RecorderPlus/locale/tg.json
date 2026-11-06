@@ -89,5 +89,6 @@
  "High": "Баланд",
  "Balanced": "Мувозинатнок",
  "Small file": "Файли хурд",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Муваққатӣ: агар ҳуҷҷат ҳамчун .kra ё .psd нигоҳ дошта нашавад, ҳангоми пӯшидан нест карда мешавад."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Муваққатӣ: агар ҳуҷҷат ҳамчун .kra ё .psd нигоҳ дошта нашавад, ҳангоми пӯшидан нест карда мешавад.",
+ "Could not process recording frame: {error}": "Кадри сабтро коркард кардан нашуд: {error}"
 }

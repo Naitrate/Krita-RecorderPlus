@@ -89,5 +89,6 @@
  "High": "高",
  "Balanced": "平衡",
  "Small file": "小檔案",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "暫時:若文件未儲存為 .kra 或 .psd,關閉時將被刪除。"
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "暫時:若文件未儲存為 .kra 或 .psd,關閉時將被刪除。",
+ "Could not process recording frame: {error}": "無法處理錄製影格:{error}"
 }

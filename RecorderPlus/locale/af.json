@@ -89,5 +89,6 @@
  "High": "Hoog",
  "Balanced": "Gebalanseer",
  "Small file": "Klein lêer",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tydelik: word uitgevee wanneer die dokument toegemaak word, tensy dit as .kra of .psd gestoor is."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tydelik: word uitgevee wanneer die dokument toegemaak word, tensy dit as .kra of .psd gestoor is.",
+ "Could not process recording frame: {error}": "Kon nie die opnameraam verwerk nie: {error}"
 }

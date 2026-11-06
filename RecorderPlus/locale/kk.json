@@ -89,5 +89,6 @@
  "High": "Жоғары",
  "Balanced": "Теңгерімді",
  "Small file": "Шағын файл",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Уақытша: құжат .kra немесе .psd ретінде сақталмаса, ол жабылғанда жойылады."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Уақытша: құжат .kra немесе .psd ретінде сақталмаса, ол жабылғанда жойылады.",
+ "Could not process recording frame: {error}": "Жазба кадрын өңдеу мүмкін болмады: {error}"
 }

@@ -89,5 +89,6 @@
  "High": "Korkea",
  "Balanced": "Tasapainoinen",
  "Small file": "Pieni tiedosto",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Väliaikainen: poistetaan, kun asiakirja suljetaan, ellei sitä tallenneta .kra- tai .psd-muodossa."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Väliaikainen: poistetaan, kun asiakirja suljetaan, ellei sitä tallenneta .kra- tai .psd-muodossa.",
+ "Could not process recording frame: {error}": "Tallenteen kuvan käsittely epäonnistui: {error}"
 }

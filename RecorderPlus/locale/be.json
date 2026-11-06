@@ -89,5 +89,6 @@
  "High": "Высокая",
  "Balanced": "Збалансаваная",
  "Small file": "Маленькі файл",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Часова: выдаляецца пры закрыцці дакумента, калі ён не захаваны як .kra або .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Часова: выдаляецца пры закрыцці дакумента, калі ён не захаваны як .kra або .psd.",
+ "Could not process recording frame: {error}": "Не ўдалося апрацаваць кадр запісу: {error}"
 }

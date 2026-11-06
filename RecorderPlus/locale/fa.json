@@ -89,5 +89,6 @@
  "High": "بالا",
  "Balanced": "متعادل",
  "Small file": "فایل کوچک",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "موقت: هنگام بستن سند حذف می‌شود، مگر اینکه با قالب ‎.kra‎ یا ‎.psd‎ ذخیره شود."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "موقت: هنگام بستن سند حذف می‌شود، مگر اینکه با قالب ‎.kra‎ یا ‎.psd‎ ذخیره شود.",
+ "Could not process recording frame: {error}": "پردازش قاب ضبط ممکن نشد: {error}"
 }

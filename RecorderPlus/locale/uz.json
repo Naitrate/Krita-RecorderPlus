@@ -89,5 +89,6 @@
  "High": "Yuqori",
  "Balanced": "Muvozanatli",
  "Small file": "Kichik fayl",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Vaqtinchalik: hujjat .kra yoki .psd sifatida saqlanmasa, yopilganda oʻchiriladi."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Vaqtinchalik: hujjat .kra yoki .psd sifatida saqlanmasa, yopilganda oʻchiriladi.",
+ "Could not process recording frame: {error}": "Yozuv kadrini qayta ishlab boʻlmadi: {error}"
 }

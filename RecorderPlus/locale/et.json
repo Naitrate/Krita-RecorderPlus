@@ -89,5 +89,6 @@
  "High": "Kõrge",
  "Balanced": "Tasakaalus",
  "Small file": "Väike fail",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Ajutine: kustutatakse dokumendi sulgemisel, kui seda pole salvestatud .kra või .psd vormingus."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Ajutine: kustutatakse dokumendi sulgemisel, kui seda pole salvestatud .kra või .psd vormingus.",
+ "Could not process recording frame: {error}": "Salvestise kaadrit ei õnnestunud töödelda: {error}"
 }

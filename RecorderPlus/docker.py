@@ -222,11 +222,14 @@ class RecorderPlusDocker(DockWidget):
         self.status.setText(status)
 
         folder = self._current_folder()
-        info = load_info(folder) if folder else None
+        info = seg.info if seg is not None else (load_info(folder) if folder else None)
         if info and info.get("segments"):
             paths = segment_paths(folder, info)
             size = sum(os.path.getsize(p) for p in paths)
-            frames = sum(s.get("frames", 0) for s in info["segments"]) + (seg.frames if seg else 0)
+            # The open segment's entry only holds its last checkpoint; use its
+            # live count instead.
+            frames = sum(s.get("frames", 0) for s in info["segments"]
+                         if not (seg and s.get("file") == seg.file)) + (seg.frames if seg else 0)
             secs = frames / max(1, info["fps"])
             text = tr("{name}: {frames} frames ({seconds} s of video), {size}, "
                       "{width}×{height} @ {fps} fps").format(
@@ -244,7 +247,9 @@ class RecorderPlusDocker(DockWidget):
     def _refresh_resolution_labels(self, doc):
         info = None
         if doc is not None:
-            info = load_info(RECORDER.folder_for(doc))
+            seg = RECORDER.segment
+            folder = RECORDER.folder_for(doc)
+            info = seg.info if seg is not None and seg.folder == folder else load_info(folder)
         for i, name in enumerate(RES_NAMES):
             if doc is None:
                 text = tr(name)

@@ -89,5 +89,6 @@
  "High": "Heech",
  "Balanced": "Lykwichtich",
  "Small file": "Lyts bestân",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tydlik: wurdt fuortsmiten as it dokumint sluten wurdt, útsein as it bewarre is as .kra of .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tydlik: wurdt fuortsmiten as it dokumint sluten wurdt, útsein as it bewarre is as .kra of .psd.",
+ "Could not process recording frame: {error}": "Kin it opnameframe net ferwurkje: {error}"
 }

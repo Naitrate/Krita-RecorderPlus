@@ -89,5 +89,6 @@
  "High": "Alte",
  "Balanced": "Balanciate",
  "Small file": "File parve",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Temporari: delite quando le documento es claudite, salvo si illo es salvate como .kra o .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Temporari: delite quando le documento es claudite, salvo si illo es salvate como .kra o .psd.",
+ "Could not process recording frame: {error}": "Non pote processar le quadro del registration: {error}"
 }

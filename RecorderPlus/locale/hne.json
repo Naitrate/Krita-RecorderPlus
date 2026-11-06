@@ -89,5 +89,6 @@
  "High": "उच्च",
  "Balanced": "संतुलित",
  "Small file": "छोटी फ़ाइल",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "अस्थायी: दस्तावेज़ बंद होए म मिट जाही, जब तक ओला .kra या .psd के रूप म सहेजे नइ जाय।"
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "अस्थायी: दस्तावेज़ बंद होए म मिट जाही, जब तक ओला .kra या .psd के रूप म सहेजे नइ जाय।",
+ "Could not process recording frame: {error}": "रिकॉर्डिंग फ़्रेम संसाधित नइ हो सकिस: {error}"
 }

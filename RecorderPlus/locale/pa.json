@@ -89,5 +89,6 @@
  "High": "ਉੱਚ",
  "Balanced": "ਸੰਤੁਲਿਤ",
  "Small file": "ਛੋਟੀ ਫ਼ਾਈਲ",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "ਅਸਥਾਈ: ਜੇ ਦਸਤਾਵੇਜ਼ .kra ਜਾਂ .psd ਵਜੋਂ ਸੰਭਾਲਿਆ ਨਾ ਗਿਆ ਤਾਂ ਬੰਦ ਹੋਣ 'ਤੇ ਹਟਾ ਦਿੱਤਾ ਜਾਵੇਗਾ।"
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "ਅਸਥਾਈ: ਜੇ ਦਸਤਾਵੇਜ਼ .kra ਜਾਂ .psd ਵਜੋਂ ਸੰਭਾਲਿਆ ਨਾ ਗਿਆ ਤਾਂ ਬੰਦ ਹੋਣ 'ਤੇ ਹਟਾ ਦਿੱਤਾ ਜਾਵੇਗਾ।",
+ "Could not process recording frame: {error}": "ਰਿਕਾਰਡਿੰਗ ਫ਼ਰੇਮ ਨੂੰ ਪ੍ਰੋਸੈਸ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ: {error}"
 }

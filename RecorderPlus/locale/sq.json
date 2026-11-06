@@ -89,5 +89,6 @@
  "High": "E lartë",
  "Balanced": "E balancuar",
  "Small file": "Kartelë e vogël",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "E përkohshme: fshihet kur mbyllet dokumenti, veç në u ruajt si .kra ose .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "E përkohshme: fshihet kur mbyllet dokumenti, veç në u ruajt si .kra ose .psd.",
+ "Could not process recording frame: {error}": "S'u përpunua dot kuadri i regjistrimit: {error}"
 }

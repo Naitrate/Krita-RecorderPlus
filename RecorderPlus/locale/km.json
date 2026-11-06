@@ -89,5 +89,6 @@
  "High": "ខ្ពស់",
  "Balanced": "តុល្យភាព",
  "Small file": "ឯកសារតូច",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "បណ្ដោះអាសន្ន៖ នឹងត្រូវលុបពេលបិទឯកសារ លុះត្រាតែវាត្រូវបានរក្សាទុកជា .kra ឬ .psd។"
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "បណ្ដោះអាសន្ន៖ នឹងត្រូវលុបពេលបិទឯកសារ លុះត្រាតែវាត្រូវបានរក្សាទុកជា .kra ឬ .psd។",
+ "Could not process recording frame: {error}": "មិនអាចដំណើរការស៊ុមនៃការថតបានទេ៖ {error}"
 }

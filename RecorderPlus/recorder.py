@@ -159,6 +159,10 @@ class Segment:
     def alive(self):
         return not self.error and self.proc.poll() is None
 
+    @property
+    def accepting_frames(self):
+        return not self._queue.full()
+
     def push(self, data, block=False):
         if not self.alive:
             return False
@@ -207,10 +211,16 @@ class Segment:
 
 # Canvas widget classes (OpenGL and software canvas).
 CANVAS_CLASSES = {"KisOpenGLCanvas2", "KisQPainterCanvas"}
-STROKE_DELAY_MS = 30
+STROKE_DELAY_MS = 150
 ACTION_DELAY_MS = 150
 SETTLE_MS = 1200
 LOCK_RETRY_MS = 100
+MIN_CAPTURE_SECONDS = 0.25
+# A press whose release never reached the canvas (e.g. a popup grabbed it)
+# must not block captures forever.
+STROKE_STUCK_SECONDS = 30
+_STROKE_START = {QEvent.Type.TabletPress, QEvent.Type.MouseButtonPress,
+                 QEvent.Type.TouchBegin}
 _STROKE_END = {QEvent.Type.TabletRelease, QEvent.Type.MouseButtonRelease,
                QEvent.Type.TouchEnd, QEvent.Type.KeyRelease}
 
@@ -224,13 +234,23 @@ class _CanvasWatcher(QObject):
         self._recorder = recorder
 
     def eventFilter(self, obj, event):
-        if event.type() in _STROKE_END:
+        kind = event.type()
+        if kind in _STROKE_START:
+            self._recorder._stroke_active = True
+            self._recorder._stroke_started = time.monotonic()
+        elif kind in _STROKE_END:
+            if kind != QEvent.Type.KeyRelease:
+                self._recorder._stroke_active = False
             self._recorder.request_capture(STROKE_DELAY_MS)
+        elif kind == QEvent.Type.TouchCancel:
+            # Not FocusOut: focus can move while the pen is still down.
+            self._recorder._stroke_active = False
         return False
 
 
 class Recorder(QObject):
     changed = pyqtSignal()
+    _processed = pyqtSignal(object)
 
     def __init__(self):
         super().__init__()
@@ -247,6 +267,12 @@ class Recorder(QObject):
         self._digests = {}           # key -> digest of last written frame
         self._failed = set()         # encoders that died this session
         self._temporary = {}         # key -> folder of temporary recordings
+        self._stroke_active = False
+        self._stroke_started = 0.0
+        self._processing = False
+        self._generation = 0         # reject worker results after stop/switch
+        self._last_capture = 0.0
+        self._processed.connect(self._frame_ready)
         # Bookkeeping poll (no capturing) and the coalescing capture timer.
         self._watch_timer = QTimer(self)
         self._watch_timer.timeout.connect(self._watch)
@@ -342,6 +368,7 @@ class Recorder(QObject):
         return usable[0] if usable else "libx264"
 
     def close_segment(self):
+        self._generation += 1
         seg, self.segment = self.segment, None
         if seg is None:
             return
@@ -422,13 +449,14 @@ class Recorder(QObject):
             w, h = int(w * s), int(h * s)
         return max(2, w & ~1), max(2, h & ~1)
 
-    def _watch(self):
+    def _watch(self, hook_canvases=True):
         """Cheap bookkeeping, run every second: follow the active document,
         auto-enable newly opened ones, hook new canvases. Returns the active
         document if it is being recorded."""
         app = Krita.instance()
         doc = app.activeDocument()
-        self._hook_canvases()
+        if hook_canvases:
+            self._hook_canvases()
         if doc is None:
             self.close_segment()
             return None
@@ -461,23 +489,29 @@ class Recorder(QObject):
         return doc
 
     def _tick(self):
-        doc = self._watch()
+        doc = self._watch(hook_canvases=False)
         if doc is None:
             return
         # Like Krita's recorder: only capture while the main window is focused,
         # so modal dialogs (filters, etc.) aren't disturbed.
         if not isinstance(QApplication.activeWindow(), QMainWindow):
             return
-        # Also like Krita's recorder: only when no stroke/filter is still being
-        # processed, so frames never show half-finished operations. Never
-        # blocks: if Krita is busy, try again shortly.
-        if not doc.tryBarrierLock():
+        # A timer from the previous release/action may fire during a new
+        # stroke. Never take a document lock while the user is drawing.
+        if self._stroke_active and time.monotonic() - self._stroke_started > STROKE_STUCK_SECONDS:
+            self._stroke_active = False
+        if self._stroke_active or self._processing:
             self.request_capture(LOCK_RETRY_MS)
             return
-        try:
-            self._capture(doc)
-        finally:
-            doc.unlock()
+        if self.segment is not None and self.segment.alive and not self.segment.accepting_frames:
+            # Backpressure before projection, not after the expensive work.
+            self.request_capture(LOCK_RETRY_MS)
+            return
+        remaining = MIN_CAPTURE_SECONDS - (time.monotonic() - self._last_capture)
+        if remaining > 0:
+            self.request_capture(max(1, int(remaining * 1000) + 1))
+            return
+        self._capture(doc)
 
     def _capture(self, doc):
         key = self.key
@@ -497,30 +531,67 @@ class Recorder(QObject):
             self.close_segment()
             info = load_info(self.folder)
 
-        frame = QImage(tw, th, QImage.Format.Format_RGB32)
-        # Same as Krita's recorder (removeFrameTransparency): transparent and
-        # semi-transparent pixels are blended source-over onto plain white.
-        frame.fill(QColor(255, 255, 255))
-        p = QPainter(frame)
         div = 1 << max(0, min(2, resolution))
         cw, ch = tw * div, th * div
-        if cw <= w and ch <= h:
-            # Like Krita: truncate odd edges instead of resampling, then
-            # downscale by an exact factor.
-            src = doc.projection(0, 0, cw, ch)
-        else:
-            # Only when capped to the encoder's maximum dimension.
-            src = doc.projection(0, 0, w, h)
-        if src.size().width() != tw or src.size().height() != th:
-            src = src.scaled(tw, th, Qt.AspectRatioMode.IgnoreAspectRatio,
-                             Qt.TransformationMode.SmoothTransformation)
-        p.drawImage(0, 0, src)
-        p.end()
+        # Only accessing Krita's projection needs the barrier lock. QImage
+        # processing, encoder startup, file I/O and UI updates must not hold it.
+        if not doc.tryBarrierLock():
+            self.request_capture(LOCK_RETRY_MS)
+            return
+        try:
+            if cw <= w and ch <= h:
+                # Preserve the existing odd-edge truncation before downscaling.
+                src = doc.projection(0, 0, cw, ch)
+            else:
+                src = doc.projection(0, 0, w, h)
+        finally:
+            doc.unlock()
+        self._last_capture = time.monotonic()
+        context = {"key": key, "generation": self._generation, "info": info,
+                   "resolution": resolution, "width": tw, "height": th,
+                   "name": doc.name(), "document": doc.fileName()}
+        self._processing = True
+        threading.Thread(target=self._process_frame, args=(src, context), daemon=True).start()
 
-        data = image_bytes(frame)
-        digest = hashlib.blake2b(data, digest_size=16).hexdigest()
+    def _process_frame(self, src, context):
+        """Work only on the captured QImage, never Krita objects or widgets."""
+        try:
+            tw, th = context["width"], context["height"]
+            if src.width() != tw or src.height() != th:
+                src = src.scaled(tw, th, Qt.AspectRatioMode.IgnoreAspectRatio,
+                                 Qt.TransformationMode.SmoothTransformation)
+            frame = QImage(tw, th, QImage.Format.Format_RGB32)
+            # Match Krita's recorder: composite transparency onto white.
+            frame.fill(QColor(255, 255, 255))
+            p = QPainter(frame)
+            try:
+                p.drawImage(0, 0, src)
+            finally:
+                p.end()
+            data = image_bytes(frame)
+            digest = hashlib.blake2b(data, digest_size=16).hexdigest()
+            self._processed.emit((context, frame, data, digest, None))
+        except Exception as e:
+            self._processed.emit((context, None, None, None, str(e)))
+
+    def _frame_ready(self, result):
+        """Queued back onto the UI thread; discard stale document results."""
+        self._processing = False
+        context, frame, data, digest, error = result
+        key = context["key"]
+        doc = Krita.instance().activeDocument()
+        if (context["generation"] != self._generation or key != self.key
+                or key not in self._enabled_keys or doc is None
+                or document_key(doc) != key):
+            return
+        if error is not None:
+            self._fail(tr("Could not process recording frame: {error}").format(error=error))
+            return
         if digest == self._digests.get(key):
             return  # canvas unchanged
+        info = context["info"]
+        resolution = context["resolution"]
+        tw, th = context["width"], context["height"]
 
         if self.segment is None or not self.segment.alive:
             if self.segment is not None:
@@ -537,15 +608,15 @@ class Recorder(QObject):
                     return
             os.makedirs(self.folder, exist_ok=True)
             if info is None:
-                info = {"name": doc.name() or os.path.basename(doc.fileName()) or "Untitled",
+                info = {"name": context["name"] or os.path.basename(context["document"]) or "Untitled",
                         "fps": settings.get("fps"), "resolution": resolution,
                         "segments": [],
-                        "temporary": not is_persistent_file(doc.fileName())}
+                        "temporary": not is_persistent_file(context["document"])}
             if info.get("temporary"):
                 self._temporary[key] = self.folder
             info["width"], info["height"] = tw, th   # latest size
-            info["name"] = doc.name() or info.get("name", "")
-            info["document"] = doc.fileName()
+            info["name"] = context["name"] or info.get("name", "")
+            info["document"] = context["document"]
             try:
                 self.segment = Segment(self.folder, info, self.chosen_encoder(), settings.get("quality"))
             except OSError as e:
@@ -560,7 +631,8 @@ class Recorder(QObject):
                 self.segment.checkpoint(digest)
         else:
             self.status = tr("Encoder falling behind — frame dropped")
-        self.changed.emit()
+        # The docker already refreshes on its own timer. Avoid doing disk
+        # reads and rebuilding UI state after every stroke.
 
 
 RECORDER = Recorder()

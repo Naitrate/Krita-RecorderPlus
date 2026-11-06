@@ -89,5 +89,6 @@
  "High": "pona mute",
  "Balanced": "sama",
  "Small file": "lipu lili",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "tenpo lili: lipu li pini la ni li weka. taso sina awen e lipu kepeken .kra anu .psd la ni li awen."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "tenpo lili: lipu li pini la ni li weka. taso sina awen e lipu kepeken .kra anu .psd la ni li awen.",
+ "Could not process recording frame: {error}": "mi ken ala pali e sitelen lukin: {error}"
 }

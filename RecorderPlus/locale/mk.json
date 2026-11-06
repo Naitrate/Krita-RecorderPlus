@@ -89,5 +89,6 @@
  "High": "Висок",
  "Balanced": "Балансиран",
  "Small file": "Мала датотека",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Привремено: се брише при затворање на документот, освен ако не е зачуван како .kra или .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Привремено: се брише при затворање на документот, освен ако не е зачуван како .kra или .psd.",
+ "Could not process recording frame: {error}": "Кадарот од снимката не може да се обработи: {error}"
 }

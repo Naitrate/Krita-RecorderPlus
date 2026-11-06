@@ -89,5 +89,6 @@
  "High": "Hôte",
  "Balanced": "Balancî",
  "Small file": "Ptit fitchî",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tins-ci tins-la : disfacé cwand l' documint est sere, a môins k' il n' soeye schapé come .kra ou .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Tins-ci tins-la : disfacé cwand l' documint est sere, a môins k' il n' soeye schapé come .kra ou .psd.",
+ "Could not process recording frame: {error}": "Dji n' a savou traitî l' imådje di l' eredjistraedje : {error}"
 }

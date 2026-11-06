@@ -89,5 +89,6 @@
  "High": "Aukšta",
  "Balanced": "Subalansuota",
  "Small file": "Mažas failas",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Laikinas: ištrinamas uždarius dokumentą, nebent jis įrašytas kaip .kra arba .psd."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Laikinas: ištrinamas uždarius dokumentą, nebent jis įrašytas kaip .kra arba .psd.",
+ "Could not process recording frame: {error}": "Nepavyko apdoroti įrašo kadro: {error}"
 }

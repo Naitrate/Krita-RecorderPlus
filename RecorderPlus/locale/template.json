@@ -81,6 +81,7 @@
   "Not recording this document": "",
   "Canvas too large to record": "",
   "Encoder falling behind — frame dropped": "",
+  "Could not process recording frame: {error}": "",
   "ffmpeg stopped accepting frames ({error}); see ffmpeg.log": "",
   "{failed} failed, falling back to {encoder}": "",
   "Could not start ffmpeg: {error}": "",

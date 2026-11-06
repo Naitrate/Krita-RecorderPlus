@@ -89,5 +89,6 @@
  "High": "Yüksek",
  "Balanced": "Dengeli",
  "Small file": "Küçük dosya",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Geçici: belge .kra veya .psd olarak kaydedilmezse kapatıldığında silinir."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Geçici: belge .kra veya .psd olarak kaydedilmezse kapatıldığında silinir.",
+ "Could not process recording frame: {error}": "Kayıt karesi işlenemedi: {error}"
 }

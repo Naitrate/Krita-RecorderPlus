@@ -89,5 +89,6 @@
  "High": "Magas",
  "Balanced": "Kiegyensúlyozott",
  "Small file": "Kis fájl",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Ideiglenes: a dokumentum bezárásakor törlődik, hacsak nincs .kra vagy .psd formátumban mentve."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "Ideiglenes: a dokumentum bezárásakor törlődik, hacsak nincs .kra vagy .psd formátumban mentve.",
+ "Could not process recording frame: {error}": "A felvétel képkockája nem dolgozható fel: {error}"
 }

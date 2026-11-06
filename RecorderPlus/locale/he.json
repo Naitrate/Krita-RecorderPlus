@@ -89,5 +89,6 @@
  "High": "גבוהה",
  "Balanced": "מאוזנת",
  "Small file": "קובץ קטן",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "זמני: יימחק עם סגירת המסמך אלא אם הוא יישמר כ־‎.kra‎ או ‎.psd‎."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "זמני: יימחק עם סגירת המסמך אלא אם הוא יישמר כ־‎.kra‎ או ‎.psd‎.",
+ "Could not process recording frame: {error}": "לא ניתן לעבד את שקופית ההקלטה: {error}"
 }

@@ -89,5 +89,6 @@
  "High": "உயர்",
  "Balanced": "சமநிலை",
  "Small file": "சிறிய கோப்பு",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "தற்காலிகம்: ஆவணம் .kra அல்லது .psd ஆகச் சேமிக்கப்படாவிட்டால் மூடும்போது நீக்கப்படும்."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "தற்காலிகம்: ஆவணம் .kra அல்லது .psd ஆகச் சேமிக்கப்படாவிட்டால் மூடும்போது நீக்கப்படும்.",
+ "Could not process recording frame: {error}": "பதிவுச் சட்டகத்தைச் செயலாக்க முடியவில்லை: {error}"
 }

@@ -89,5 +89,6 @@
  "High": "يۇقىرى",
  "Balanced": "تەڭپۇڭ",
  "Small file": "كىچىك ھۆججەت",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "ۋاقىتلىق: پۈتۈك ‎.kra‎ ياكى ‎.psd‎ قىلىپ ساقلانمىسا، تاقالغاندا ئۆچۈرۈلىدۇ."
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "ۋاقىتلىق: پۈتۈك ‎.kra‎ ياكى ‎.psd‎ قىلىپ ساقلانمىسا، تاقالغاندا ئۆچۈرۈلىدۇ.",
+ "Could not process recording frame: {error}": "خاتىرە كاندۇكىنى بىر تەرەپ قىلالمىدى: {error}"
 }

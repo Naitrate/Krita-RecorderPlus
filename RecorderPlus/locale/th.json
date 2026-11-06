@@ -89,5 +89,6 @@
  "High": "สูง",
  "Balanced": "สมดุล",
  "Small file": "ไฟล์เล็ก",
- "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "ชั่วคราว: จะถูกลบเมื่อปิดเอกสาร เว้นแต่จะบันทึกเป็น .kra หรือ .psd"
+ "Temporary: deleted when the document closes unless it is saved as .kra or .psd.": "ชั่วคราว: จะถูกลบเมื่อปิดเอกสาร เว้นแต่จะบันทึกเป็น .kra หรือ .psd",
+ "Could not process recording frame: {error}": "ประมวลผลเฟรมการบันทึกไม่ได้: {error}"
 }
